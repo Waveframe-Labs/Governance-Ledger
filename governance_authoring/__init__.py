@@ -8,6 +8,7 @@ from governance_authoring.lifecycle import transition_review_status
 from governance_authoring.provenance import build_review_provenance
 from governance_authoring.report import review_constraints, validate_constraints
 from governance_authoring.review import build_review_report
+from governance_authoring.rollback import rollback_to_snapshot
 from governance_authoring.snapshot import create_snapshot
 from governance_authoring.validation import validate_authoring
 
@@ -20,6 +21,7 @@ __all__ = [
     "diff_reviews",
     "extract_constraints",
     "review_constraints",
+    "rollback_to_snapshot",
     "transition_review_status",
     "validate_authoring",
     "validate_constraints",
