@@ -301,6 +301,29 @@ review = attach_deployment(
 snapshot = create_snapshot(review)
 ```
 
+## Runnable Finance Walkthrough
+
+Run the canonical example lifecycle:
+
+```powershell
+python examples\run_finance_flow.py
+```
+
+The script reads [examples/finance_governance.txt](examples/finance_governance.txt) and writes deterministic artifacts to [examples/artifacts/](examples/artifacts/):
+
+- `structured_policy.json`
+- `review.json`
+- `validation.json`
+- `approved_review.json`
+- `compiled_contract.json`
+- `compiled_review.json`
+- `deployed_review.json`
+- `snapshot.json`
+- `diff.json`
+- `rollback.json`
+
+The walkthrough attempts to use the canonical CRI-CORE Contract Compiler when available. If the installed compiler rejects the v0.1 example policy shape, the script writes an explicitly marked deterministic example compiled contract so the lifecycle remains runnable end to end.
+
 ## Documentation
 
 - [GOVERNANCE_OBJECT_MODEL.md](GOVERNANCE_OBJECT_MODEL.md)

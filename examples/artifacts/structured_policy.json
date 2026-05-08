@@ -1,0 +1,17 @@
+{
+  "approvals": {
+    "thresholds": {
+      "transfer_funds": 1000000
+    }
+  },
+  "authority": {
+    "required_roles": [
+      "manager"
+    ]
+  },
+  "contract_id": "finance-policy",
+  "contract_version": "0.1.0",
+  "invariants": {
+    "separation_of_duties": true
+  }
+}
