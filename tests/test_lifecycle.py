@@ -1,7 +1,7 @@
 import pytest
 
-from governance_authoring import review_constraints, transition_review_status
-from governance_authoring.lifecycle import (
+from governance_ledger import review_constraints, transition_review_status
+from governance_ledger.lifecycle import (
     ALLOWED_REVIEW_TRANSITIONS,
     VALID_REVIEW_STATUSES,
 )

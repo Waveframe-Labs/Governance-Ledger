@@ -1,6 +1,69 @@
+---
+title: "Governance Lifecycle"
+document_type: "lifecycle"
+system: "Governance-Ledger"
+component: "lifecycle"
+version: "0.1.0"
+status: "draft"
+
+created: "2026-05-08"
+updated: "2026-05-08"
+
+authors:
+  - "Waveframe Labs"
+
+maintainers:
+  - "Waveframe Labs"
+
+license: "Apache-2.0"
+
+repository: "https://github.com/Waveframe-Labs/Governance-Ledger"
+
+summary: >
+  Lifecycle specification for Governance-Ledger review states, allowed
+  transitions, approval semantics, compilation linkage, deployment, and
+  rollback behavior.
+
+related_components:
+  - "CRI-CORE"
+  - "Waveframe Guard"
+  - "Proposal Normalizer"
+  - "CRI-CORE Contract Compiler"
+
+related_documents:
+  - "README.md"
+  - "GOVERNANCE_OBJECT_MODEL.md"
+  - "PROVENANCE.md"
+
+governance_primitives:
+  - "review_artifact"
+  - "lifecycle_transition"
+  - "deployment_provenance"
+  - "snapshot"
+  - "rollback"
+  - "governance_diff"
+
+determinism:
+  deterministic_ids: true
+  canonical_hashing: true
+  mutable_history: false
+
+provenance:
+  review_lineage: true
+  deployment_traceability: true
+  rollback_traceability: true
+  snapshot_integrity: true
+
+ai_assisted: "partial"
+
+notes: >
+  Lifecycle transitions are explicit governance state changes and should not
+  be bypassed by direct status mutation.
+---
+
 # Governance Lifecycle
 
-Governance Authoring models governance as deterministic state evolution.
+Governance-Ledger models governance as deterministic state evolution.
 
 Lifecycle state is explicit. Transitions are constrained. Operations that change state must use lifecycle transition semantics instead of mutating status fields directly.
 
@@ -54,9 +117,9 @@ Compiled contract linkage is forbidden unless the review is already `approved`.
 
 ## Compilation Semantics
 
-Compilation is performed by the canonical CRI-CORE compiler, not Governance Authoring.
+Compilation is performed by the canonical CRI-CORE compiler, not Governance-Ledger.
 
-Governance Authoring records only:
+Governance-Ledger records only:
 
 ```json
 {

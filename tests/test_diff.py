@@ -1,4 +1,4 @@
-from governance_authoring import diff_reviews
+from governance_ledger import diff_reviews
 
 
 def test_diff_reviews_detects_added_removed_and_modified_constraints():

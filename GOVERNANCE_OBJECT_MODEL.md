@@ -1,12 +1,75 @@
+---
+title: "Governance Object Model"
+document_type: "reference"
+system: "Governance-Ledger"
+component: "core"
+version: "0.1.0"
+status: "draft"
+
+created: "2026-05-08"
+updated: "2026-05-08"
+
+authors:
+  - "Waveframe Labs"
+
+maintainers:
+  - "Waveframe Labs"
+
+license: "Apache-2.0"
+
+repository: "https://github.com/Waveframe-Labs/Governance-Ledger"
+
+summary: >
+  Reference model for Governance-Ledger review artifacts, lifecycle entries,
+  compiled contract linkage, deployment provenance, snapshots, rollback
+  provenance, and governance diffs.
+
+related_components:
+  - "CRI-CORE"
+  - "Waveframe Guard"
+  - "Proposal Normalizer"
+  - "CRI-CORE Contract Compiler"
+
+related_documents:
+  - "README.md"
+  - "LIFECYCLE.md"
+  - "PROVENANCE.md"
+
+governance_primitives:
+  - "review_artifact"
+  - "lifecycle_transition"
+  - "deployment_provenance"
+  - "snapshot"
+  - "rollback"
+  - "governance_diff"
+
+determinism:
+  deterministic_ids: true
+  canonical_hashing: true
+  mutable_history: false
+
+provenance:
+  review_lineage: true
+  deployment_traceability: true
+  rollback_traceability: true
+  snapshot_integrity: true
+
+ai_assisted: "partial"
+
+notes: >
+  This document defines object shapes and semantics for deterministic
+  governance state evolution.
+---
+
 # Governance Object Model
 
-This document describes the deterministic governance objects produced and transformed by Governance Authoring.
+This document describes the deterministic governance objects produced and transformed by Governance-Ledger.
 
 The object model is the project ontology: governance text becomes structured state, and state evolves through explicit artifacts.
 
 ## Review Object
 
-A review object is the central governance authoring artifact.
+A review object is the central Governance-Ledger artifact.
 
 ```json
 {
@@ -119,7 +182,7 @@ Rollback entries are also lifecycle entries, but they record restoration provena
 
 ## Compiled Contract Linkage
 
-Governance Authoring does not embed compiled contracts. It records lightweight linkage only.
+Governance-Ledger does not embed compiled contracts. It records lightweight linkage only.
 
 ```json
 {

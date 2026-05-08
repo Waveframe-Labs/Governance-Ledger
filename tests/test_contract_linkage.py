@@ -1,6 +1,6 @@
 import pytest
 
-from governance_authoring import (
+from governance_ledger import (
     attach_compiled_contract,
     review_constraints,
     transition_review_status,

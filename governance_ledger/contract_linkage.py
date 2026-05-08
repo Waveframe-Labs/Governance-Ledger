@@ -6,8 +6,8 @@ import hashlib
 import json
 from typing import Any
 
-from governance_authoring.lifecycle import transition_review_status
-from governance_authoring.provenance import _utc_now
+from governance_ledger.lifecycle import transition_review_status
+from governance_ledger.provenance import _utc_now
 
 REQUIRED_LINKAGE_STATUS = "approved"
 DEFAULT_COMPILED_BY = "compiler-service"

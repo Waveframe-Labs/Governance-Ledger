@@ -7,8 +7,8 @@ from pathlib import Path
 from typing import Any
 
 from compiler.compile_policy import compile_policy
-from governance_authoring.extract import extract_constraints
-from governance_authoring.review import build_review_report
+from governance_ledger.extract import extract_constraints
+from governance_ledger.review import build_review_report
 
 
 def build_contract_files(

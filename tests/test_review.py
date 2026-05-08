@@ -1,4 +1,4 @@
-from governance_authoring import build_review_report, extract_constraints, review_constraints
+from governance_ledger import build_review_report, extract_constraints, review_constraints
 
 
 def test_builds_review_report_with_source_text():

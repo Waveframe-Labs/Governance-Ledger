@@ -1,6 +1,68 @@
-# Governance Authoring
+---
+title: "Governance-Ledger"
+document_type: "overview"
+system: "Governance-Ledger"
+component: "core"
+version: "0.1.0"
+status: "draft"
 
-Governance Authoring is a deterministic governance operationalization layer for transforming human governance text into traceable, reviewable, executable governance artifacts compatible with CRI-CORE enforcement systems.
+created: "2026-05-08"
+updated: "2026-05-08"
+
+authors:
+  - "Waveframe Labs"
+
+maintainers:
+  - "Waveframe Labs"
+
+license: "Apache-2.0"
+
+repository: "https://github.com/Waveframe-Labs/Governance-Ledger"
+
+summary: >
+  Conceptual entry point for Governance-Ledger, including purpose,
+  boundaries, architecture, supported primitives, and basic usage.
+
+related_components:
+  - "CRI-CORE"
+  - "Waveframe Guard"
+  - "Proposal Normalizer"
+  - "CRI-CORE Contract Compiler"
+
+related_documents:
+  - "GOVERNANCE_OBJECT_MODEL.md"
+  - "LIFECYCLE.md"
+  - "PROVENANCE.md"
+
+governance_primitives:
+  - "review_artifact"
+  - "lifecycle_transition"
+  - "deployment_provenance"
+  - "snapshot"
+  - "rollback"
+  - "governance_diff"
+
+determinism:
+  deterministic_ids: true
+  canonical_hashing: true
+  mutable_history: false
+
+provenance:
+  review_lineage: true
+  deployment_traceability: true
+  rollback_traceability: true
+  snapshot_integrity: true
+
+ai_assisted: "partial"
+
+notes: >
+  Governance-Ledger is deterministic infrastructure for governance state
+  evolution, not an autonomous policy reasoning system.
+---
+
+# Governance-Ledger
+
+Governance-Ledger is a deterministic governance operationalization layer for transforming human governance text into traceable, reviewable, executable governance artifacts compatible with CRI-CORE enforcement systems.
 
 The core idea is simple:
 
@@ -24,7 +86,7 @@ Policy language enters as text. The system extracts only supported governance pr
 
 ## What It Is Not
 
-Governance Authoring is not:
+Governance-Ledger is not:
 
 - An AI governance engine.
 - Autonomous policy reasoning.
@@ -64,7 +126,7 @@ Snapshot / Rollback
 CRI-CORE Enforcement Compatibility
 ```
 
-Governance Authoring produces upstream governance objects. The canonical CRI-CORE compiler remains the authority for compiled contract semantics.
+Governance-Ledger produces upstream governance objects. The canonical CRI-CORE compiler remains the authority for compiled contract semantics.
 
 ## Supported v0.1 Primitives
 
@@ -167,7 +229,7 @@ That preserves auditability. A human reviewer can decide whether to rewrite, app
 ## Basic Usage
 
 ```python
-from governance_authoring import (
+from governance_ledger import (
     attach_compiled_contract,
     attach_deployment,
     create_snapshot,

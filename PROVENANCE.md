@@ -1,6 +1,69 @@
+---
+title: "Governance Provenance"
+document_type: "provenance"
+system: "Governance-Ledger"
+component: "core"
+version: "0.1.0"
+status: "draft"
+
+created: "2026-05-08"
+updated: "2026-05-08"
+
+authors:
+  - "Waveframe Labs"
+
+maintainers:
+  - "Waveframe Labs"
+
+license: "Apache-2.0"
+
+repository: "https://github.com/Waveframe-Labs/Governance-Ledger"
+
+summary: >
+  Provenance model for Governance-Ledger deterministic review IDs,
+  canonical snapshot hashes, source attribution, compiled contract linkage,
+  rollback lineage, and immutable-style history.
+
+related_components:
+  - "CRI-CORE"
+  - "Waveframe Guard"
+  - "Proposal Normalizer"
+  - "CRI-CORE Contract Compiler"
+
+related_documents:
+  - "README.md"
+  - "GOVERNANCE_OBJECT_MODEL.md"
+  - "LIFECYCLE.md"
+
+governance_primitives:
+  - "review_artifact"
+  - "lifecycle_transition"
+  - "deployment_provenance"
+  - "snapshot"
+  - "rollback"
+  - "governance_diff"
+
+determinism:
+  deterministic_ids: true
+  canonical_hashing: true
+  mutable_history: false
+
+provenance:
+  review_lineage: true
+  deployment_traceability: true
+  rollback_traceability: true
+  snapshot_integrity: true
+
+ai_assisted: "partial"
+
+notes: >
+  Provenance is modeled as deterministic, inspectable lineage rather than
+  mutable operational notes.
+---
+
 # Provenance
 
-Governance Authoring treats provenance as a first-class governance object.
+Governance-Ledger treats provenance as a first-class governance object.
 
 The project is built around deterministic state evolution: every meaningful transformation should be inspectable, attributable, and reproducible.
 
@@ -41,7 +104,7 @@ Unsupported or ambiguous language becomes warnings. It is not silently dropped a
 
 Compiled contracts are external artifacts.
 
-Governance Authoring links only:
+Governance-Ledger links only:
 
 ```json
 {
@@ -53,7 +116,7 @@ Governance Authoring links only:
 
 This keeps artifact boundaries clean:
 
-- Governance Authoring owns review provenance.
+- Governance-Ledger owns review provenance.
 - The compiler owns compiled contract semantics.
 - Runtime systems own enforcement behavior.
 

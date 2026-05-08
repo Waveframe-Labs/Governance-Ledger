@@ -5,7 +5,7 @@ from __future__ import annotations
 import hashlib
 from datetime import datetime, timezone
 
-from governance_authoring.extract import _normalize_text
+from governance_ledger.extract import _normalize_text
 
 DEFAULT_REVIEW_STATUS = "pending"
 

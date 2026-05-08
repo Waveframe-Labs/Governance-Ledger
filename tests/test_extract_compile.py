@@ -2,7 +2,7 @@ import json
 import sys
 import types
 
-from governance_authoring.extract import extract_constraints
+from governance_ledger.extract import extract_constraints
 
 
 def test_extracts_v01_constraints_from_policy_text():
@@ -51,7 +51,7 @@ def test_builds_contract_files_from_policy_text(tmp_path):
     sys.modules["compiler"] = compiler_module
     sys.modules["compiler.compile_policy"] = compile_policy_module
 
-    from governance_authoring.pipeline import build_contract_files
+    from governance_ledger.pipeline import build_contract_files
 
     policy_path = tmp_path / "policy.txt"
     structured_policy_path = tmp_path / "structured_policy.json"

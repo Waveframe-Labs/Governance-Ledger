@@ -6,7 +6,7 @@ import re
 from copy import deepcopy
 from typing import Any
 
-from governance_authoring.patterns import (
+from governance_ledger.patterns import (
     ROLE_PATTERNS,
     SEPARATION_PATTERNS,
     THRESHOLD_PATTERNS,

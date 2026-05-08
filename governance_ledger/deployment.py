@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from governance_authoring.lifecycle import transition_review_status
-from governance_authoring.provenance import _utc_now
+from governance_ledger.lifecycle import transition_review_status
+from governance_ledger.provenance import _utc_now
 
 REQUIRED_DEPLOYMENT_STATUS = "compiled"
 DEFAULT_ENFORCEMENT_ENGINE = "cricore"

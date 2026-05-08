@@ -5,8 +5,8 @@ from __future__ import annotations
 import re
 from typing import Any
 
-from governance_authoring.extract import _normalize_text
-from governance_authoring.patterns import (
+from governance_ledger.extract import _normalize_text
+from governance_ledger.patterns import (
     AMBIGUOUS_AUTHORITY_PATTERNS,
     GOVERNANCE_SIGNAL_PATTERN,
     ROLE_PATTERNS,

@@ -5,14 +5,14 @@ from __future__ import annotations
 import re
 from typing import Any
 
-from governance_authoring.extract import _normalize_role, _normalize_text, _parse_amount
-from governance_authoring.patterns import (
+from governance_ledger.extract import _normalize_role, _normalize_text, _parse_amount
+from governance_ledger.patterns import (
     ROLE_PATTERNS,
     SEPARATION_PATTERNS,
     THRESHOLD_PATTERNS,
 )
-from governance_authoring.provenance import build_review_provenance
-from governance_authoring.validation import validate_authoring
+from governance_ledger.provenance import build_review_provenance
+from governance_ledger.validation import validate_authoring
 
 
 def build_review_report(

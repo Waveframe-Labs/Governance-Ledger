@@ -5,7 +5,7 @@ from __future__ import annotations
 from copy import deepcopy
 from typing import Any
 
-from governance_authoring.provenance import _utc_now
+from governance_ledger.provenance import _utc_now
 
 VALID_REVIEW_STATUSES = {
     "pending",
