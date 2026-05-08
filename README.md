@@ -33,6 +33,7 @@ related_documents:
   - "GOVERNANCE_OBJECT_MODEL.md"
   - "LIFECYCLE.md"
   - "PROVENANCE.md"
+  - "NON_GOALS.md"
 
 governance_primitives:
   - "review_artifact"
@@ -93,6 +94,9 @@ Governance-Ledger is not:
 - Runtime enforcement.
 - Semantic governance inference.
 - Legal interpretation AI.
+- A replacement for human governance ownership.
+- A runtime admissibility evaluator.
+- A system that executes mutations.
 
 It does not infer unsupported governance meaning. If language is unsupported or ambiguous, it becomes a warning instead of hidden structure.
 
@@ -124,6 +128,33 @@ Snapshot / Rollback
     |
     v
 CRI-CORE Enforcement Compatibility
+```
+
+```mermaid
+flowchart TD
+    A["Policy Text"] --> B["Deterministic Extraction"]
+    B --> C["Review Artifact"]
+    C --> D["Validation Warnings"]
+    D --> E["Lifecycle Approval"]
+    E --> F["Compiled Contract Linkage"]
+    F --> G["Deployment Provenance"]
+    G --> H["Snapshot"]
+    H --> I["Rollback Lineage"]
+    F --> J["CRI-CORE Enforcement Compatibility"]
+    G --> J
+```
+
+```mermaid
+stateDiagram-v2
+    [*] --> pending
+    pending --> reviewed
+    pending --> rejected
+    reviewed --> approved
+    reviewed --> rejected
+    approved --> compiled
+    compiled --> deployed
+    rejected --> [*]
+    deployed --> [*]
 ```
 
 Governance-Ledger produces upstream governance objects. The canonical CRI-CORE compiler remains the authority for compiled contract semantics.
@@ -275,4 +306,6 @@ snapshot = create_snapshot(review)
 - [GOVERNANCE_OBJECT_MODEL.md](GOVERNANCE_OBJECT_MODEL.md)
 - [LIFECYCLE.md](LIFECYCLE.md)
 - [PROVENANCE.md](PROVENANCE.md)
+- [NON_GOALS.md](NON_GOALS.md)
 - [examples/](examples/)
+- [schemas/](schemas/)

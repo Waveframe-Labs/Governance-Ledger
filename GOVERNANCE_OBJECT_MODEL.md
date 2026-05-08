@@ -34,6 +34,7 @@ related_documents:
   - "README.md"
   - "LIFECYCLE.md"
   - "PROVENANCE.md"
+  - "NON_GOALS.md"
 
 governance_primitives:
   - "review_artifact"
@@ -90,6 +91,21 @@ Fields:
 - `review_status`: lifecycle state.
 - `detected_constraints`: deterministic extracted governance primitives.
 - `warnings`: unsupported, ambiguous, or unextracted governance language.
+
+## Naming Conventions
+
+The following field names are canonical and should remain stable across code, schemas, and documentation:
+
+- `review_status`
+- `snapshot_hash`
+- `deployment`
+- `compiled_contract`
+- `rollback`
+- `detected_constraints`
+- `warnings`
+- `lifecycle`
+
+Documents may use human-readable phrases such as "compiled contract linkage" in prose, but object keys should use the canonical snake_case names above.
 
 ## Detected Constraints
 
@@ -271,3 +287,13 @@ Review diffs compare governance versions.
 ```
 
 Diffs are structural, not semantic guesses.
+
+## Versioned Schemas
+
+Initial JSON Schemas live in [schemas/](schemas/):
+
+- [review.schema.json](schemas/review.schema.json)
+- [snapshot.schema.json](schemas/snapshot.schema.json)
+- [deployment.schema.json](schemas/deployment.schema.json)
+
+Schemas are references for artifact shape stability. Runtime code remains deterministic and explicit; schemas document expected object boundaries.

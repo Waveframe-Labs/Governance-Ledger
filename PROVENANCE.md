@@ -34,6 +34,7 @@ related_documents:
   - "README.md"
   - "GOVERNANCE_OBJECT_MODEL.md"
   - "LIFECYCLE.md"
+  - "NON_GOALS.md"
 
 governance_primitives:
   - "review_artifact"
@@ -172,3 +173,13 @@ This preserves lineage instead of pretending the later state never existed.
 Most operations return copied objects and avoid mutating inputs.
 
 That makes governance artifacts easier to audit, test, diff, snapshot, and restore.
+
+```mermaid
+flowchart LR
+    A["Review Artifact"] --> B["Lifecycle Entries"]
+    B --> C["compiled_contract Linkage"]
+    C --> D["deployment Provenance"]
+    D --> E["Snapshot"]
+    E --> F["Rollback Provenance"]
+    F --> G["Restored Review State"]
+```

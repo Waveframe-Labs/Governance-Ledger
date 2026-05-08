@@ -34,6 +34,7 @@ related_documents:
   - "README.md"
   - "GOVERNANCE_OBJECT_MODEL.md"
   - "PROVENANCE.md"
+  - "NON_GOALS.md"
 
 governance_primitives:
   - "review_artifact"
@@ -93,6 +94,19 @@ Valid review statuses:
     "rejected": set(),
     "deployed": set(),
 }
+```
+
+```mermaid
+stateDiagram-v2
+    [*] --> pending
+    pending --> reviewed: review accepted for approval decision
+    pending --> rejected: reject before review completion
+    reviewed --> approved: governance approval
+    reviewed --> rejected: reject after review
+    approved --> compiled: attach compiled_contract
+    compiled --> deployed: attach deployment
+    rejected --> [*]
+    deployed --> [*]
 ```
 
 ## State Meaning
