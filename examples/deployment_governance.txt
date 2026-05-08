@@ -1,0 +1,3 @@
+Production deployments require platform approval.
+Deployment approver and deployment proposer must be separate.
+Deployments require reasonable activation timing.

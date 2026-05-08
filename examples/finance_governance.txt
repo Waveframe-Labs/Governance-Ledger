@@ -1,0 +1,2 @@
+Transfers above $1M require manager approval.
+Proposer and approver must be separate.

@@ -1,0 +1,3 @@
+Deletes above $100,000 require database-admin approval.
+Requester and approver must be separate.
+Deletion requests shall retain audit evidence.
