@@ -57,7 +57,12 @@ def test_review_report_includes_authoring_warnings():
     )
     policy = extract_constraints(text)
 
-    report = build_review_report(text, policy)
+    report = build_review_report(
+        text,
+        policy,
+        review_id="review-003",
+        created_at="2026-05-07T20:16:00Z",
+    )
 
     assert report["detected_constraints"] == [
         {

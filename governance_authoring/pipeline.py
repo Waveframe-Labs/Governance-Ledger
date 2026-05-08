@@ -18,9 +18,14 @@ def build_contract_files(
     review_report_path: str | Path | None = None,
 ) -> dict[str, Any]:
     """Run policy.txt -> structured_policy.json -> compiled_contract.json."""
-    policy_text = Path(policy_path).read_text(encoding="utf-8")
+    policy_input_path = Path(policy_path)
+    policy_text = policy_input_path.read_text(encoding="utf-8")
     structured_policy = extract_constraints(policy_text)
-    review_report = build_review_report(policy_text, structured_policy)
+    review_report = build_review_report(
+        policy_text,
+        structured_policy,
+        source_document=policy_input_path.name,
+    )
     compiled_contract = compile_policy(structured_policy)
 
     _write_json(structured_policy_path, structured_policy)

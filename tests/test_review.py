@@ -8,9 +8,19 @@ def test_builds_review_report_with_source_text():
     """
     policy = extract_constraints(text)
 
-    report = build_review_report(text, policy)
+    report = build_review_report(
+        text,
+        policy,
+        review_id="review-001",
+        created_at="2026-05-07T20:14:00Z",
+        source_document="finance_policy.txt",
+    )
 
     assert report == {
+        "review_id": "review-001",
+        "created_at": "2026-05-07T20:14:00Z",
+        "source_document": "finance_policy.txt",
+        "review_status": "pending",
         "detected_constraints": [
             {
                 "type": "required_role",
@@ -34,9 +44,17 @@ def test_builds_review_report_with_source_text():
 
 
 def test_review_constraints_extracts_and_reports():
-    report = review_constraints("Only compliance may approve transfers.")
+    report = review_constraints(
+        "Only compliance may approve transfers.",
+        review_id="review-002",
+        created_at="2026-05-07T20:15:00Z",
+    )
 
     assert report == {
+        "review_id": "review-002",
+        "created_at": "2026-05-07T20:15:00Z",
+        "source_document": None,
+        "review_status": "pending",
         "detected_constraints": [
             {
                 "type": "required_role",
@@ -46,3 +64,22 @@ def test_review_constraints_extracts_and_reports():
         ],
         "warnings": [],
     }
+
+
+def test_review_id_is_stable_when_not_supplied():
+    text = "Only compliance may approve transfers."
+    policy = extract_constraints(text)
+
+    first_report = build_review_report(
+        text,
+        policy,
+        created_at="2026-05-07T20:15:00Z",
+    )
+    second_report = build_review_report(
+        text,
+        policy,
+        created_at="2026-05-07T20:16:00Z",
+    )
+
+    assert first_report["review_id"] == second_report["review_id"]
+    assert first_report["review_id"].startswith("review-")

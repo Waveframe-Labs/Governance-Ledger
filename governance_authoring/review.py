@@ -11,10 +11,19 @@ from governance_authoring.patterns import (
     SEPARATION_PATTERNS,
     THRESHOLD_PATTERNS,
 )
+from governance_authoring.provenance import build_review_provenance
 from governance_authoring.validation import validate_authoring
 
 
-def build_review_report(text: str, policy: dict[str, Any]) -> dict[str, Any]:
+def build_review_report(
+    text: str,
+    policy: dict[str, Any],
+    *,
+    review_id: str | None = None,
+    created_at: str | None = None,
+    source_document: str | None = None,
+    review_status: str = "pending",
+) -> dict[str, Any]:
     """Explain which governance constraints were detected from source text."""
     normalized_text = _normalize_text(text)
     detected_constraints: list[dict[str, Any]] = []
@@ -66,6 +75,13 @@ def build_review_report(text: str, policy: dict[str, Any]) -> dict[str, Any]:
     validation_report = validate_authoring(text, policy)
 
     return {
+        **build_review_provenance(
+            text,
+            review_id=review_id,
+            created_at=created_at,
+            source_document=source_document,
+            review_status=review_status,
+        ),
         "detected_constraints": detected_constraints,
         "warnings": validation_report["warnings"],
     }
