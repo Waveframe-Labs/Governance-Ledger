@@ -11,6 +11,7 @@ from governance_authoring.patterns import (
     SEPARATION_PATTERNS,
     THRESHOLD_PATTERNS,
 )
+from governance_authoring.validation import validate_authoring
 
 
 def build_review_report(text: str, policy: dict[str, Any]) -> dict[str, Any]:
@@ -62,7 +63,12 @@ def build_review_report(text: str, policy: dict[str, Any]) -> dict[str, Any]:
                     },
                 )
 
-    return {"detected_constraints": detected_constraints}
+    validation_report = validate_authoring(text, policy)
+
+    return {
+        "detected_constraints": detected_constraints,
+        "warnings": validation_report["warnings"],
+    }
 
 
 def _append_unique_constraint(

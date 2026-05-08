@@ -29,6 +29,7 @@ def test_builds_review_report_with_source_text():
                 "source_text": "above $1M",
             },
         ],
+        "warnings": [],
     }
 
 
@@ -43,4 +44,5 @@ def test_review_constraints_extracts_and_reports():
                 "source_text": "Only compliance may",
             },
         ],
+        "warnings": [],
     }
