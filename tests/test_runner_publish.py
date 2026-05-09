@@ -6,6 +6,7 @@ import pytest
 from governance_ledger.publish import approve_review_file, publish_review_file
 from governance_ledger.runner import run_policy_directory
 from governance_ledger.checks import check_validation_directory, format_check_summary
+from governance_ledger.inspect import format_artifact, format_contract_list, list_contracts, show_artifact
 from governance_ledger.summary import build_pr_summary, format_run_summary
 
 
@@ -108,6 +109,7 @@ def test_approve_then_publish_creates_contract_review_and_snapshot_artifacts(tmp
     assert Path(result["contract"]).parent == contracts_dir
     assert Path(result["deployed_review"]).parent == reviews_dir
     assert Path(result["manifest"]).parent == contracts_dir
+    assert Path(result["registry"]).parent == contracts_dir
     assert Path(result["snapshot"]).parent == snapshots_dir
     assert Path(result["contract"]).name.endswith(".contract.json")
 
@@ -120,6 +122,18 @@ def test_approve_then_publish_creates_contract_review_and_snapshot_artifacts(tmp
     assert manifest["published_at"] == "2026-05-09T12:30:00Z"
     assert manifest["contracts"][0]["contract_hash"].startswith("sha256:")
     assert manifest["contracts"][0]["path"] == result["contract"]
+
+    registry = json.loads(Path(result["registry"]).read_text())
+    assert registry["contracts"] == [
+        {
+            "contract_id": "finance-policy",
+            "contract_version": "0.1.0",
+            "contract_hash": manifest["contracts"][0]["contract_hash"],
+            "path": result["contract"],
+            "published_at": "2026-05-09T12:30:00Z",
+            "published_by": "governance-team",
+        }
+    ]
 
 
 def test_check_validation_directory_fails_on_error_severity(tmp_path):
@@ -211,6 +225,36 @@ def test_publish_refuses_to_overwrite_immutable_contract_output(tmp_path):
         )
 
 
+def test_list_contracts_and_show_artifact(tmp_path):
+    policies_dir, generated_dir, reviews_dir, contracts_dir, snapshots_dir = _draft_policy(tmp_path)
+    review_path = reviews_dir / "finance_policy.review.json"
+    approve_review_file(
+        review_path,
+        actor="governance-team",
+        timestamp="2026-05-09T12:00:00Z",
+    )
+    result = publish_review_file(
+        review_path,
+        generated_dir=generated_dir,
+        contracts_dir=contracts_dir,
+        reviews_dir=reviews_dir,
+        snapshots_dir=snapshots_dir,
+        timestamp="2026-05-09T12:30:00Z",
+    )
+
+    registry = list_contracts(contracts_dir)
+    list_summary = format_contract_list(registry)
+    artifact = show_artifact(result["contract"])
+    artifact_summary = format_artifact(result["contract"], artifact)
+
+    assert registry["contracts"][0]["contract_id"] == "finance-policy"
+    assert "Published Contracts" in list_summary
+    assert "finance-policy v0.1.0" in list_summary
+    assert "sha256:" in list_summary
+    assert artifact["contract_id"] == "finance-policy"
+    assert "Artifact:" in artifact_summary
+
+
 def test_format_run_summary_exposes_operational_counts(tmp_path):
     policies_dir, generated_dir, reviews_dir, contracts_dir, snapshots_dir = _draft_policy(tmp_path)
     results = run_policy_directory(
@@ -269,6 +313,28 @@ def test_build_pr_summary_formats_constraints_warnings_and_status():
     assert "- separation_of_duties" in summary
     assert 'error: ambiguous clause: "appropriate manager"' in summary
     assert "BLOCKED_PENDING_REVIEW" in summary
+
+
+def test_build_pr_summary_includes_approval_metadata():
+    review = {
+        "source_document": "finance_policy.txt",
+        "review_status": "approved",
+        "approved_by": "governance-team",
+        "approved_at": "2026-05-09T12:00:00Z",
+        "approval_note": "Approved finance governance.",
+        "detected_constraints": [],
+        "warnings": [],
+    }
+
+    summary = build_pr_summary(review)
+
+    assert "Approval Status:" in summary
+    assert "APPROVED" in summary
+    assert "Approved By:" in summary
+    assert "governance-team" in summary
+    assert "Approved At:" in summary
+    assert "2026-05-09T12:00:00Z" in summary
+    assert "Approval Note:" in summary
 
 
 def _draft_policy(tmp_path):

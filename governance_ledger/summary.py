@@ -68,6 +68,9 @@ def format_publish_summary(result: dict[str, str]) -> str:
             "Manifest:",
             f"  {result['manifest']}",
             "",
+            "Registry:",
+            f"  {result['registry']}",
+            "",
             "Snapshot:",
             f"  {result['snapshot']}",
         ]
@@ -105,6 +108,22 @@ def build_pr_summary(
         lines.append("- none")
 
     lines.extend(["", "Publication Status:", status])
+    if review.get("approved_by") or review.get("approved_at") or review.get("approval_note"):
+        lines.extend(
+            [
+                "",
+                "Approval Status:",
+                "APPROVED" if review.get("review_status") in {"approved", "compiled", "deployed"} else "NOT_APPROVED",
+                "",
+                "Approved By:",
+                str(review.get("approved_by")),
+                "",
+                "Approved At:",
+                str(review.get("approved_at")),
+            ]
+        )
+        if review.get("approval_note"):
+            lines.extend(["", "Approval Note:", str(review.get("approval_note"))])
     return "\n".join(lines)
 
 

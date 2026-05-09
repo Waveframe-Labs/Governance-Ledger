@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Waveframe-Labs/Governance-Ledger/schemas/contract_registry.schema.json",
+  "title": "Governance-Ledger Contract Registry",
+  "type": "object",
+  "required": ["contracts"],
+  "properties": {
+    "contracts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "contract_id",
+          "contract_version",
+          "contract_hash",
+          "path",
+          "published_at",
+          "published_by"
+        ],
+        "properties": {
+          "contract_id": {"type": "string"},
+          "contract_version": {"type": "string"},
+          "contract_hash": {
+            "type": "string",
+            "pattern": "^sha256:[A-Fa-f0-9]{64}$"
+          },
+          "path": {"type": "string"},
+          "published_at": {"type": ["string", "null"]},
+          "published_by": {"type": "string"}
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

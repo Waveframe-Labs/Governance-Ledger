@@ -10,6 +10,7 @@ from typing import Any
 from governance_ledger.contract_linkage import attach_compiled_contract
 from governance_ledger.deployment import attach_deployment
 from governance_ledger.lifecycle import transition_review_status
+from governance_ledger.registry import update_contract_registry
 from governance_ledger.snapshot import create_snapshot
 
 
@@ -118,11 +119,19 @@ def publish_review_file(
     )
     manifest_path = Path(contracts_dir) / f"{policy_stem}.publication_manifest.json"
     _write_immutable_json(manifest_path, manifest)
+    update_contract_registry(
+        contracts_dir,
+        compiled_contract=compiled_contract,
+        contract_path=contract_path,
+        published_at=timestamp,
+        published_by=actor,
+    )
 
     return {
         "contract": str(contract_path),
         "deployed_review": str(deployed_review_path),
         "manifest": str(manifest_path),
+        "registry": str(Path(contracts_dir) / "index.json"),
         "snapshot": str(snapshot_path),
     }
 

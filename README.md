@@ -343,6 +343,7 @@ Publish output:
 
 - `contracts/<contract-id>-<version>.contract.json`
 - `contracts/<policy>.publication_manifest.json`
+- `contracts/index.json`
 - `reviews/<policy>.deployed.review.json`
 - `snapshots/<snapshot-id>.json`
 
@@ -357,6 +358,18 @@ governance-ledger check generated
 ```
 
 The check fails when any generated validation artifact contains `severity == "error"`.
+
+Published contracts can be listed:
+
+```powershell
+governance-ledger list contracts
+```
+
+Any JSON artifact can be inspected:
+
+```powershell
+governance-ledger show contracts/finance-policy-0.1.0.contract.json
+```
 
 ## Documentation
 

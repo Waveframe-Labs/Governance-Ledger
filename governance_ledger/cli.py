@@ -10,6 +10,12 @@ from typing import Sequence
 from governance_ledger.publish import approve_review_file, publish_review_file
 from governance_ledger.runner import run_policy_directory
 from governance_ledger.checks import check_validation_directory, format_check_summary
+from governance_ledger.inspect import (
+    format_artifact,
+    format_contract_list,
+    list_contracts,
+    show_artifact,
+)
 from governance_ledger.summary import (
     build_pr_summary,
     format_publish_summary,
@@ -54,6 +60,15 @@ def main(argv: Sequence[str] | None = None) -> int:
     check_parser.add_argument("generated_dir")
     check_parser.add_argument("--json", action="store_true")
 
+    list_parser = subparsers.add_parser("list", help="list governance registry artifacts")
+    list_parser.add_argument("kind", choices=["contracts"])
+    list_parser.add_argument("--contracts-dir", default="contracts")
+    list_parser.add_argument("--json", action="store_true")
+
+    show_parser = subparsers.add_parser("show", help="show a governance artifact")
+    show_parser.add_argument("path")
+    show_parser.add_argument("--json", action="store_true")
+
     args = parser.parse_args(argv)
 
     if args.command == "run":
@@ -96,8 +111,12 @@ def main(argv: Sequence[str] | None = None) -> int:
             enforcement_engine_version=args.enforcement_engine_version,
             timestamp=args.timestamp,
         )
-    else:
+    elif args.command == "check":
         result = check_validation_directory(args.generated_dir)
+    elif args.command == "list":
+        result = list_contracts(args.contracts_dir)
+    else:
+        result = show_artifact(args.path)
 
     if getattr(args, "json", False):
         print(json.dumps(result, indent=2, sort_keys=True))
@@ -108,6 +127,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     elif args.command == "check":
         print(format_check_summary(result))
         return 1 if result["error_count"] else 0
+    elif args.command == "list":
+        print(format_contract_list(result))
+    elif args.command == "show":
+        print(format_artifact(args.path, result))
     else:
         print(
             "\n".join(

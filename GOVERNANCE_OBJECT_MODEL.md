@@ -123,6 +123,8 @@ Publication manifests are written to `contracts/` because they index runtime con
 
 Contract artifacts and publication manifests are immutable publication outputs. Re-running publication may confirm identical outputs, but it must not replace different content at the same path.
 
+`contracts/index.json` is the published contract registry. It is the operational catalog for runtime discovery, audit visibility, and future registry integration.
+
 ## Detected Constraints
 
 Role requirement:
@@ -312,5 +314,6 @@ Initial JSON Schemas live in [schemas/](schemas/):
 - [snapshot.schema.json](schemas/snapshot.schema.json)
 - [deployment.schema.json](schemas/deployment.schema.json)
 - [publication_manifest.schema.json](schemas/publication_manifest.schema.json)
+- [contract_registry.schema.json](schemas/contract_registry.schema.json)
 
 Schemas are references for artifact shape stability. Runtime code remains deterministic and explicit; schemas document expected object boundaries.
