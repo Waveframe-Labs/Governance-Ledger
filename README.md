@@ -7,7 +7,7 @@ version: "0.1.0"
 status: "draft"
 
 created: "2026-05-08"
-updated_date: "2026-05-09"
+updated: "2026-05-09"
 
 authors:
   - "Waveframe Labs"
@@ -347,6 +347,8 @@ Publish output:
 - `snapshots/<snapshot-id>.json`
 
 Runtime contracts should only exist in `contracts/`. They should not be written to `generated/`, `reviews/`, or `policies/`.
+
+Files in `contracts/` are immutable publication outputs. Publishing is idempotent when the existing content is identical, but Governance-Ledger refuses to overwrite an existing contract or publication manifest with different content.
 
 Generated validation artifacts include warning severity. CI can block publication workflows with:
 

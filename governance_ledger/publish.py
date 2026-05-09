@@ -81,7 +81,7 @@ def publish_review_file(
     compiled_contract = _compile_policy(structured_policy)
     contract_path = Path(contracts_dir) / _contract_filename(compiled_contract)
     contract_path.parent.mkdir(parents=True, exist_ok=True)
-    _write_json(contract_path, compiled_contract)
+    _write_immutable_json(contract_path, compiled_contract)
 
     compiled_review = attach_compiled_contract(
         review,
@@ -117,7 +117,7 @@ def publish_review_file(
         published_by=actor,
     )
     manifest_path = Path(contracts_dir) / f"{policy_stem}.publication_manifest.json"
-    _write_json(manifest_path, manifest)
+    _write_immutable_json(manifest_path, manifest)
 
     return {
         "contract": str(contract_path),
@@ -231,3 +231,13 @@ def _write_json(path: Path, payload: dict[str, Any]) -> None:
         json.dumps(payload, indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
     )
+
+
+def _write_immutable_json(path: Path, payload: dict[str, Any]) -> None:
+    serialized = json.dumps(payload, indent=2, sort_keys=True) + "\n"
+    if path.exists():
+        existing = path.read_text(encoding="utf-8")
+        if existing != serialized:
+            raise ValueError(f"Refusing to overwrite immutable publication output: {path}")
+        return
+    path.write_text(serialized, encoding="utf-8")

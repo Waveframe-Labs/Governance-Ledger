@@ -7,7 +7,7 @@ version: "0.1.0"
 status: "draft"
 
 created: "2026-05-08"
-updated_date: "2026-05-09"
+updated: "2026-05-09"
 
 authors:
   - "Waveframe Labs"
@@ -120,6 +120,8 @@ Governance-Ledger separates draft, review, runtime, and recovery artifacts by di
 Runtime contracts should only be written to `contracts/`.
 
 Publication manifests are written to `contracts/` because they index runtime contract publication outputs.
+
+Contract artifacts and publication manifests are immutable publication outputs. Re-running publication may confirm identical outputs, but it must not replace different content at the same path.
 
 ## Detected Constraints
 

@@ -5,7 +5,7 @@ import pytest
 
 from governance_ledger.publish import approve_review_file, publish_review_file
 from governance_ledger.runner import run_policy_directory
-from governance_ledger.checks import check_validation_directory
+from governance_ledger.checks import check_validation_directory, format_check_summary
 from governance_ledger.summary import build_pr_summary, format_run_summary
 
 
@@ -143,7 +143,72 @@ def test_check_validation_directory_fails_on_error_severity(tmp_path):
     result = check_validation_directory(generated_dir)
 
     assert result["status"] == "failed"
+    assert result["publication_status"] == "BLOCKED_ERRORS"
+    assert result["policy_count"] == 1
+    assert result["warning_count"] == 1
     assert result["error_count"] == 1
+
+
+def test_check_validation_summary_reports_counts_and_readiness(tmp_path):
+    generated_dir = tmp_path / "generated"
+    generated_dir.mkdir()
+    (generated_dir / "policy.validation.json").write_text(
+        json.dumps(
+            {
+                "warnings": [
+                    {
+                        "type": "extraction_gap",
+                        "severity": "warning",
+                        "text": "review quarterly",
+                    }
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    result = check_validation_directory(generated_dir)
+    summary = format_check_summary(result)
+
+    assert result["status"] == "passed"
+    assert result["publication_status"] == "READY_FOR_REVIEW"
+    assert result["policy_count"] == 1
+    assert result["warning_count"] == 1
+    assert result["error_count"] == 0
+    assert "Governance Validation Summary" in summary
+    assert "Policies Processed: 1" in summary
+    assert "Warnings: 1" in summary
+    assert "Errors: 0" in summary
+    assert "READY_FOR_REVIEW" in summary
+
+
+def test_publish_refuses_to_overwrite_immutable_contract_output(tmp_path):
+    policies_dir, generated_dir, reviews_dir, contracts_dir, snapshots_dir = _draft_policy(tmp_path)
+    review_path = reviews_dir / "finance_policy.review.json"
+    approve_review_file(
+        review_path,
+        actor="governance-team",
+        timestamp="2026-05-09T12:00:00Z",
+    )
+    result = publish_review_file(
+        review_path,
+        generated_dir=generated_dir,
+        contracts_dir=contracts_dir,
+        reviews_dir=reviews_dir,
+        snapshots_dir=snapshots_dir,
+        timestamp="2026-05-09T12:30:00Z",
+    )
+    Path(result["contract"]).write_text('{"tampered": true}\n', encoding="utf-8")
+
+    with pytest.raises(ValueError, match="immutable publication output"):
+        publish_review_file(
+            review_path,
+            generated_dir=generated_dir,
+            contracts_dir=contracts_dir,
+            reviews_dir=reviews_dir,
+            snapshots_dir=snapshots_dir,
+            timestamp="2026-05-09T12:30:00Z",
+        )
 
 
 def test_format_run_summary_exposes_operational_counts(tmp_path):
