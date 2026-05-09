@@ -25,3 +25,15 @@ dev = [
 
 [project.scripts]
 governance-ledger = "governance_ledger.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["governance_ledger*"]
+exclude = [
+    "policies*",
+    "generated*",
+    "reviews*",
+    "contracts*",
+    "snapshots*",
+    "schemas*",
+    "tests*",
+]

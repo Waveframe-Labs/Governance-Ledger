@@ -216,3 +216,11 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Governance-Ledger runtime build outputs
+generated/*
+!generated/.gitkeep
+reviews/*
+!reviews/.gitkeep
+snapshots/*
+!snapshots/.gitkeep
