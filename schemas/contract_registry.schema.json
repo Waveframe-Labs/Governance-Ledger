@@ -29,7 +29,7 @@
             "minLength": 1,
             "pattern": "^[^\\\\]*$"
           },
-          "published_at": {"type": ["string", "null"]},
+          "published_at": {"type": "string"},
           "published_by": {"type": "string"}
         },
         "additionalProperties": false

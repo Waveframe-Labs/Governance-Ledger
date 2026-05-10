@@ -4,11 +4,12 @@ from pathlib import Path
 import pytest
 
 from governance_ledger.publish import approve_review_file, publish_review_file
+from governance_ledger.registry import update_contract_registry
 from governance_ledger.runner import run_policy_directory
 from governance_ledger.checks import check_validation_directory, format_check_summary
 from governance_ledger.inspect import format_artifact, format_contract_list, list_contracts, show_artifact
 from governance_ledger.paths import artifact_path
-from governance_ledger.summary import build_pr_summary, format_run_summary
+from governance_ledger.summary import build_pr_summary, format_publish_summary, format_run_summary
 
 
 def test_run_policy_directory_generates_draft_artifacts_only(tmp_path):
@@ -148,6 +149,49 @@ def test_approve_then_publish_creates_contract_review_and_snapshot_artifacts(tmp
     ]
 
 
+def test_publish_without_timestamp_records_effective_publication_time(tmp_path):
+    policies_dir, generated_dir, reviews_dir, contracts_dir, snapshots_dir = _draft_policy(tmp_path)
+    review_path = reviews_dir / "finance_policy.review.json"
+    approve_review_file(
+        review_path,
+        actor="governance-team",
+        timestamp="2026-05-09T12:00:00Z",
+    )
+
+    result = publish_review_file(
+        review_path,
+        generated_dir=generated_dir,
+        contracts_dir=contracts_dir,
+        reviews_dir=reviews_dir,
+        snapshots_dir=snapshots_dir,
+    )
+
+    manifest = json.loads(Path(result["manifest"]).read_text())
+    registry = json.loads(Path(result["registry"]).read_text())
+    deployed_review = json.loads(Path(result["deployed_review"]).read_text())
+    snapshot = json.loads(Path(result["snapshot"]).read_text())
+
+    assert manifest["published_at"] is not None
+    assert registry["contracts"][0]["published_at"] == manifest["published_at"]
+    assert deployed_review["deployment"]["deployed_at"] == manifest["published_at"]
+    assert snapshot["created_at"] == manifest["published_at"]
+
+
+def test_registry_update_requires_publication_timestamp(tmp_path):
+    with pytest.raises(ValueError, match="published_at"):
+        update_contract_registry(
+            tmp_path / "contracts",
+            compiled_contract={
+                "contract_id": "finance-policy",
+                "contract_version": "0.1.0",
+                "contract_hash": "abc123",
+            },
+            contract_path=tmp_path / "contracts" / "finance-policy-0.1.0.contract.json",
+            published_at=None,
+            published_by="governance-team",
+        )
+
+
 def test_check_validation_directory_fails_on_error_severity(tmp_path):
     generated_dir = tmp_path / "generated"
     generated_dir.mkdir()
@@ -265,6 +309,23 @@ def test_list_contracts_and_show_artifact(tmp_path):
     assert "sha256:" in list_summary
     assert artifact["contract_id"] == "finance-policy"
     assert "Artifact:" in artifact_summary
+
+
+def test_format_publish_summary_normalizes_display_paths():
+    summary = format_publish_summary(
+        {
+            "contract": "contracts\\finance-policy-0.1.0.contract.json",
+            "deployed_review": "reviews\\finance_policy.deployed.review.json",
+            "manifest": "contracts\\finance_policy.publication_manifest.json",
+            "registry": "contracts\\index.json",
+            "snapshot": "snapshots\\snapshot-98939483f949.json",
+        }
+    )
+
+    assert "contracts/finance-policy-0.1.0.contract.json" in summary
+    assert "reviews/finance_policy.deployed.review.json" in summary
+    assert "snapshots/snapshot-98939483f949.json" in summary
+    assert "\\" not in summary
 
 
 def test_format_run_summary_exposes_operational_counts(tmp_path):

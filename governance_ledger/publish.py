@@ -11,6 +11,7 @@ from governance_ledger.contract_linkage import attach_compiled_contract
 from governance_ledger.deployment import attach_deployment
 from governance_ledger.lifecycle import transition_review_status
 from governance_ledger.paths import artifact_path
+from governance_ledger.provenance import _utc_now
 from governance_ledger.registry import update_contract_registry
 from governance_ledger.snapshot import create_snapshot
 
@@ -75,6 +76,7 @@ def publish_review_file(
     review = _read_json(review_input_path)
     if review.get("review_status") != "approved":
         raise ValueError("Publishing requires review_status == 'approved'.")
+    published_at = timestamp or _utc_now()
 
     policy_stem = _policy_stem_from_review_path(review_input_path)
     generated_path = Path(generated_dir) / f"{policy_stem}.generated.json"
@@ -89,7 +91,7 @@ def publish_review_file(
         review,
         compiled_contract,
         actor=compiler_actor,
-        timestamp=timestamp,
+        timestamp=published_at,
     )
     deployed_review = attach_deployment(
         compiled_review,
@@ -97,7 +99,7 @@ def publish_review_file(
         runtime=runtime,
         deployed_by=deployed_by,
         enforcement_engine_version=enforcement_engine_version,
-        timestamp=timestamp,
+        timestamp=published_at,
     )
     deployed_review["published_by"] = actor
 
@@ -105,7 +107,7 @@ def publish_review_file(
     deployed_review_path.parent.mkdir(parents=True, exist_ok=True)
     _write_json(deployed_review_path, deployed_review)
 
-    snapshot = create_snapshot(deployed_review, created_at=timestamp)
+    snapshot = create_snapshot(deployed_review, created_at=published_at)
     snapshot_path = Path(snapshots_dir) / f"{snapshot['snapshot_id']}.json"
     snapshot_path.parent.mkdir(parents=True, exist_ok=True)
     _write_json(snapshot_path, snapshot)
@@ -115,7 +117,7 @@ def publish_review_file(
         contract_path=contract_path,
         deployed_review_path=deployed_review_path,
         snapshot_path=snapshot_path,
-        published_at=timestamp,
+        published_at=published_at,
         published_by=actor,
     )
     manifest_path = Path(contracts_dir) / f"{policy_stem}.publication_manifest.json"
@@ -124,7 +126,7 @@ def publish_review_file(
         contracts_dir,
         compiled_contract=compiled_contract,
         contract_path=contract_path,
-        published_at=timestamp,
+        published_at=published_at,
         published_by=actor,
     )
 
@@ -194,7 +196,7 @@ def _build_publication_manifest(
     contract_path: Path,
     deployed_review_path: Path,
     snapshot_path: Path,
-    published_at: str | None,
+    published_at: str,
     published_by: str,
 ) -> dict[str, Any]:
     contract_hash = compiled_contract["contract_hash"]

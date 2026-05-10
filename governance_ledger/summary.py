@@ -5,6 +5,8 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
+from governance_ledger.paths import artifact_path
+
 
 def format_run_summary(results: list[dict[str, Any]]) -> str:
     """Format draft-generation output for terminal visibility."""
@@ -60,19 +62,19 @@ def format_publish_summary(result: dict[str, str]) -> str:
             "  published approved governance review",
             "",
             "Contract:",
-            f"  {result['contract']}",
+            f"  {artifact_path(result['contract'])}",
             "",
             "Review:",
-            f"  {result['deployed_review']}",
+            f"  {artifact_path(result['deployed_review'])}",
             "",
             "Manifest:",
-            f"  {result['manifest']}",
+            f"  {artifact_path(result['manifest'])}",
             "",
             "Registry:",
-            f"  {result['registry']}",
+            f"  {artifact_path(result['registry'])}",
             "",
             "Snapshot:",
-            f"  {result['snapshot']}",
+            f"  {artifact_path(result['snapshot'])}",
         ]
     )
 

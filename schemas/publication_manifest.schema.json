@@ -6,7 +6,7 @@
   "required": ["published_at", "published_by", "contracts", "reviews", "snapshots"],
   "properties": {
     "published_at": {
-      "type": ["string", "null"]
+      "type": "string"
     },
     "published_by": {
       "type": "string"

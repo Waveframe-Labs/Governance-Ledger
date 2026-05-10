@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 from typing import Any
 
+from governance_ledger.paths import artifact_path
 from governance_ledger.registry import load_contract_registry
 
 
@@ -47,7 +48,7 @@ def format_artifact(path: str | Path, artifact: dict[str, Any]) -> str:
         [
             "[Governance Ledger]",
             "",
-            f"Artifact: {path}",
+            f"Artifact: {artifact_path(path)}",
             "",
             json.dumps(artifact, indent=2, sort_keys=True),
         ]

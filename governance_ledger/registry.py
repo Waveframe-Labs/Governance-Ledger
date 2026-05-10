@@ -14,7 +14,7 @@ def update_contract_registry(
     *,
     compiled_contract: dict[str, Any],
     contract_path: str | Path,
-    published_at: str | None,
+    published_at: str,
     published_by: str,
 ) -> dict[str, Any]:
     """Create or update contracts/index.json with a published contract entry."""
@@ -52,9 +52,11 @@ def _registry_entry(
     compiled_contract: dict[str, Any],
     *,
     contract_path: str | Path,
-    published_at: str | None,
+    published_at: str,
     published_by: str,
-) -> dict[str, str | None]:
+) -> dict[str, str]:
+    if not published_at:
+        raise ValueError("Published contract registry entries require published_at.")
     contract_hash = compiled_contract["contract_hash"]
     if not contract_hash.startswith("sha256:"):
         contract_hash = f"sha256:{contract_hash}"
