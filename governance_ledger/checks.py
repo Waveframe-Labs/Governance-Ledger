@@ -6,6 +6,8 @@ import json
 from pathlib import Path
 from typing import Any
 
+from governance_ledger.paths import artifact_path
+
 
 def check_validation_directory(generated_dir: str | Path) -> dict[str, Any]:
     """Return validation check results and error-severity warnings."""
@@ -22,7 +24,7 @@ def check_validation_directory(generated_dir: str | Path) -> dict[str, Any]:
             if warning.get("severity") == "error":
                 errors.append(
                     {
-                        "file": str(path),
+                        "file": artifact_path(path),
                         "type": warning.get("type", ""),
                         "text": warning.get("text", ""),
                     }

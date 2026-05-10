@@ -11,7 +11,7 @@ SEPARATION_PATTERNS = [
 ]
 
 THRESHOLD_PATTERNS = [
-    r"\btransfers?\s+(?P<source>above\s+\$?(?P<amount>\d[\d,]*(?:\.\d+)?)\s*(?P<suffix>m|million)?)\b\s+requires?\s+(?:[a-z][a-z_-]*\s+)?approval\b",
+    r"\btransfers?\s+(?P<source>above\s+\$?(?P<amount>\d[\d,]*(?:\.\d+)?)\s*(?P<suffix>m|million)?)\b\s+requires?\s+(?:(?P<requires_role>[a-z][a-z_-]*)\s+)?approval\b",
 ]
 
 AMBIGUOUS_AUTHORITY_PATTERNS = [

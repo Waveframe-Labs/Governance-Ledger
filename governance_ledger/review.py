@@ -43,7 +43,7 @@ def build_review_report(
 
     for pattern in SEPARATION_PATTERNS:
         for match in re.finditer(pattern, normalized_text, flags=re.IGNORECASE):
-            if policy.get("invariants", {}).get("separation_of_duties") is True:
+            if policy.get("authority", {}).get("separation_of_duties") is True:
                 _append_unique_constraint(
                     detected_constraints,
                     {
@@ -56,18 +56,16 @@ def build_review_report(
     for pattern in THRESHOLD_PATTERNS:
         for match in re.finditer(pattern, normalized_text, flags=re.IGNORECASE):
             threshold = _parse_amount(match["amount"], match.groupdict().get("suffix"))
-            extracted_threshold = (
-                policy.get("approvals", {})
-                .get("thresholds", {})
-                .get("transfer_funds")
-            )
-            if threshold == extracted_threshold:
+            extracted_threshold = _matching_threshold(policy, threshold)
+            if extracted_threshold:
                 _append_unique_constraint(
                     detected_constraints,
                     {
                         "type": "approval_threshold",
-                        "operation": "transfer_funds",
+                        "field": extracted_threshold["field"],
+                        "operator": extracted_threshold["operator"],
                         "value": threshold,
+                        "requires_role": extracted_threshold["requires_role"],
                         "source_text": match.groupdict().get("source", match.group(0)),
                     },
                 )
@@ -93,3 +91,14 @@ def _append_unique_constraint(
 ) -> None:
     if constraint not in detected_constraints:
         detected_constraints.append(constraint)
+
+
+def _matching_threshold(policy: dict[str, Any], value: Any) -> dict[str, Any] | None:
+    for threshold in policy.get("approvals", {}).get("thresholds", []):
+        if (
+            threshold.get("field") == "amount"
+            and threshold.get("operator") == ">"
+            and threshold.get("value") == value
+        ):
+            return threshold
+    return None

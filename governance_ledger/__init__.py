@@ -16,7 +16,7 @@ from governance_ledger.rollback import rollback_to_snapshot
 from governance_ledger.runner import run_policy_directory, run_policy_file
 from governance_ledger.snapshot import create_snapshot
 from governance_ledger.summary import build_pr_summary, format_publish_summary, format_run_summary
-from governance_ledger.validation import validate_authoring
+from governance_ledger.validation import validate_authoring, validate_compiler_policy
 
 __all__ = [
     "approve_review_file",
@@ -45,5 +45,6 @@ __all__ = [
     "show_artifact",
     "update_contract_registry",
     "validate_authoring",
+    "validate_compiler_policy",
     "validate_constraints",
 ]

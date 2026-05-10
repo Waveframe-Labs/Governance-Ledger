@@ -154,8 +154,10 @@ Approval threshold:
 ```json
 {
   "type": "approval_threshold",
-  "operation": "transfer_funds",
+  "field": "amount",
+  "operator": ">",
   "value": 1000000,
+  "requires_role": "manager",
   "source_text": "above $1M"
 }
 ```
@@ -315,6 +317,7 @@ Initial JSON Schemas live in [schemas/](schemas/):
 - [review.schema.json](schemas/review.schema.json)
 - [snapshot.schema.json](schemas/snapshot.schema.json)
 - [deployment.schema.json](schemas/deployment.schema.json)
+- [cricore_policy.schema.json](schemas/cricore_policy.schema.json)
 - [publication_manifest.schema.json](schemas/publication_manifest.schema.json)
 - [contract_registry.schema.json](schemas/contract_registry.schema.json)
 

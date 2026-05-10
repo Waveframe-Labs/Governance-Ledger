@@ -192,6 +192,37 @@ def test_registry_update_requires_publication_timestamp(tmp_path):
         )
 
 
+def test_publish_blocks_generated_policy_schema_errors(tmp_path):
+    policies_dir, generated_dir, reviews_dir, contracts_dir, snapshots_dir = _draft_policy(tmp_path)
+    review_path = reviews_dir / "finance_policy.review.json"
+    generated_path = generated_dir / "finance_policy.generated.json"
+    approve_review_file(
+        review_path,
+        actor="governance-team",
+        timestamp="2026-05-09T12:00:00Z",
+    )
+    generated_path.write_text(
+        json.dumps(
+            {
+                "contract_id": "finance-policy",
+                "contract_version": "0.1.0",
+                "approvals": {"thresholds": {"transfer_funds": 1_000_000}},
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValueError, match="canonical compiler ingestion schema"):
+        publish_review_file(
+            review_path,
+            generated_dir=generated_dir,
+            contracts_dir=contracts_dir,
+            reviews_dir=reviews_dir,
+            snapshots_dir=snapshots_dir,
+            timestamp="2026-05-09T12:30:00Z",
+        )
+
+
 def test_check_validation_directory_fails_on_error_severity(tmp_path):
     generated_dir = tmp_path / "generated"
     generated_dir.mkdir()
@@ -358,8 +389,10 @@ def test_build_pr_summary_formats_constraints_warnings_and_status():
             },
             {
                 "type": "approval_threshold",
-                "operation": "transfer_funds",
+                "field": "amount",
+                "operator": ">",
                 "value": 1_000_000,
+                "requires_role": "manager",
                 "source_text": "above $1M",
             },
             {
@@ -382,7 +415,7 @@ def test_build_pr_summary_formats_constraints_warnings_and_status():
     assert "## Governance Review Summary" in summary
     assert "Policy: finance_policy.txt" in summary
     assert "- required_role: manager" in summary
-    assert "- threshold: transfer_funds > 1000000" in summary
+    assert "- threshold: amount > 1000000 requires manager" in summary
     assert "- separation_of_duties" in summary
     assert 'error: ambiguous clause: "appropriate manager"' in summary
     assert "BLOCKED_PENDING_REVIEW" in summary

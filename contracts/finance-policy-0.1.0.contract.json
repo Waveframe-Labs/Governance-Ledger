@@ -1,21 +1,23 @@
 {
-  "approvals": {
-    "thresholds": {
-      "transfer_funds": 1000000
-    }
+  "approval_requirements": {
+    "thresholds": [
+      {
+        "field": "amount",
+        "operator": ">",
+        "requires_role": "manager",
+        "value": 1000000
+      }
+    ]
   },
-  "authority": {
+  "artifact_requirements": {},
+  "authority_requirements": {
     "required_roles": [
       "manager"
     ]
   },
-  "compiler": "governance-ledger-example",
-  "compiler_note": "canonical compiler rejected v0.1 policy shape: approval thresholds must be a list of threshold objects",
-  "contract_hash": "468d80661be7731b5df4192d071261b35f7e023b5a587426f7714dbbbba11b47",
+  "contract_hash": "c9c054892b627f1f9e01089fd292b330688dde04693468e7231e01a5931532bd",
   "contract_id": "finance-policy",
   "contract_version": "0.1.0",
-  "invariants": {
-    "separation_of_duties": true
-  },
-  "schema_version": "example-compiled-contract/v0.1"
+  "invariants": {},
+  "stage_requirements": {}
 }

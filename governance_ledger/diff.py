@@ -63,7 +63,12 @@ def _diff_constraints(
 def _constraint_key(constraint: dict[str, Any]) -> tuple[Any, ...]:
     constraint_type = constraint.get("type")
     if constraint_type == "approval_threshold":
-        return (constraint_type, constraint.get("operation"))
+        return (
+            constraint_type,
+            constraint.get("field"),
+            constraint.get("operator"),
+            constraint.get("requires_role"),
+        )
     if constraint_type == "required_role":
         return (constraint_type, constraint.get("value"))
     return (constraint_type,)

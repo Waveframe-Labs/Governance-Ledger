@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import hashlib
 import json
 from pathlib import Path
 from typing import Any
@@ -14,6 +13,7 @@ from governance_ledger.paths import artifact_path
 from governance_ledger.provenance import _utc_now
 from governance_ledger.registry import update_contract_registry
 from governance_ledger.snapshot import create_snapshot
+from governance_ledger.validation import has_validation_errors, validate_compiler_policy
 
 
 def approve_review_file(
@@ -81,6 +81,11 @@ def publish_review_file(
     policy_stem = _policy_stem_from_review_path(review_input_path)
     generated_path = Path(generated_dir) / f"{policy_stem}.generated.json"
     structured_policy = _read_json(generated_path)
+    compiler_validation = validate_compiler_policy(structured_policy)
+    if has_validation_errors(compiler_validation):
+        raise ValueError(
+            "Publishing requires generated policy to match the canonical compiler ingestion schema."
+        )
 
     compiled_contract = _compile_policy(structured_policy)
     contract_path = Path(contracts_dir) / _contract_filename(compiled_contract)
@@ -140,48 +145,12 @@ def publish_review_file(
 
 
 def _compile_policy(policy: dict[str, Any]) -> dict[str, Any]:
-    try:
-        from compiler.compile_policy import compile_policy
-    except ImportError:
-        return _example_compile_policy(policy, "canonical compiler unavailable")
+    from compiler.compile_policy import compile_policy
 
-    try:
-        compiled_contract = compile_policy(policy)
-    except Exception as exc:
-        return _example_compile_policy(
-            policy,
-            f"canonical compiler rejected v0.1 policy shape: {exc}",
-        )
+    compiled_contract = compile_policy(policy)
     if not compiled_contract.get("contract_id") or not compiled_contract.get("contract_version"):
-        return _example_compile_policy(
-            policy,
-            "canonical compiler output missing contract identity fields",
-        )
+        raise ValueError("Canonical compiler output missing contract identity fields.")
     return compiled_contract
-
-
-def _example_compile_policy(policy: dict[str, Any], compiler_note: str) -> dict[str, Any]:
-    compiled_contract = {
-        "contract_id": policy.get("contract_id", "finance-policy"),
-        "contract_version": policy.get("contract_version", "0.1.0"),
-        "schema_version": "example-compiled-contract/v0.1",
-        "compiler": "governance-ledger-example",
-        "compiler_note": compiler_note,
-        "authority": policy.get("authority", {}),
-        "approvals": policy.get("approvals", {}),
-        "invariants": policy.get("invariants", {}),
-    }
-    compiled_contract["contract_hash"] = _canonical_hash(compiled_contract)
-    return compiled_contract
-
-
-def _canonical_hash(payload: dict[str, Any]) -> str:
-    canonical_payload = json.dumps(
-        payload,
-        sort_keys=True,
-        separators=(",", ":"),
-    ).encode("utf-8")
-    return hashlib.sha256(canonical_payload).hexdigest()
 
 
 def _contract_filename(compiled_contract: dict[str, Any]) -> str:

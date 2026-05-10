@@ -34,8 +34,10 @@ def test_builds_review_report_with_source_text():
             },
             {
                 "type": "approval_threshold",
-                "operation": "transfer_funds",
+                "field": "amount",
+                "operator": ">",
                 "value": 1_000_000,
+                "requires_role": "manager",
                 "source_text": "above $1M",
             },
         ],

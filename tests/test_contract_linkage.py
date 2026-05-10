@@ -54,10 +54,15 @@ def test_attach_compiled_contract_links_only_identity_version_and_hash():
             "contract_id": "finance-core",
             "contract_version": "1.0.0",
             "contract_hash": "abc123",
-            "operations": {
-                "transfer_funds": {
-                    "approval_required_above": 1_000_000,
-                },
+            "approval_requirements": {
+                "thresholds": [
+                    {
+                        "field": "amount",
+                        "operator": ">",
+                        "value": 1_000_000,
+                        "requires_role": "manager",
+                    },
+                ],
             },
         },
         actor="compiler-service",
@@ -72,7 +77,7 @@ def test_attach_compiled_contract_links_only_identity_version_and_hash():
     }
     assert linked_review["compiled_by"] == "compiler-service"
     assert linked_review["compiled_at"] == "2026-05-07T20:30:00Z"
-    assert "operations" not in linked_review["compiled_contract"]
+    assert "approval_requirements" not in linked_review["compiled_contract"]
 
 
 def test_attach_compiled_contract_uses_lifecycle_transition():
@@ -125,10 +130,15 @@ def test_attach_compiled_contract_computes_hash_when_missing():
         {
             "contract_id": "finance-core",
             "contract_version": "1.0.0",
-            "operations": {
-                "transfer_funds": {
-                    "approval_required_above": 1_000_000,
-                },
+            "approval_requirements": {
+                "thresholds": [
+                    {
+                        "field": "amount",
+                        "operator": ">",
+                        "value": 1_000_000,
+                        "requires_role": "manager",
+                    },
+                ],
             },
         },
         timestamp="2026-05-07T20:30:00Z",

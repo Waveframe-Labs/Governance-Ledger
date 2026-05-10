@@ -2,6 +2,7 @@ from governance_ledger import (
     build_review_report,
     extract_constraints,
     validate_authoring,
+    validate_compiler_policy,
     validate_constraints,
 )
 
@@ -75,8 +76,10 @@ def test_review_report_includes_authoring_warnings():
         },
         {
             "type": "approval_threshold",
-            "operation": "transfer_funds",
+            "field": "amount",
+            "operator": ">",
             "value": 1_000_000,
+            "requires_role": "manager",
             "source_text": "above $1M",
         },
     ]
@@ -87,3 +90,31 @@ def test_review_report_includes_authoring_warnings():
             "text": "reasonable approval timing",
         },
     ]
+
+
+def test_compiler_policy_validation_rejects_ledger_native_shapes():
+    report = validate_compiler_policy(
+        {
+            "contract_id": "finance-policy",
+            "contract_version": "0.1.0",
+            "approvals": {
+                "thresholds": {
+                    "transfer_funds": 1_000_000,
+                },
+            },
+            "invariants": {
+                "separation_of_duties": True,
+            },
+        }
+    )
+
+    assert {
+        "type": "compiler_schema",
+        "severity": "error",
+        "text": "additional property is not allowed: invariants",
+    } in report["warnings"]
+    assert {
+        "type": "compiler_schema",
+        "severity": "error",
+        "text": "approvals.thresholds must be an array.",
+    } in report["warnings"]

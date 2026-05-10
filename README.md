@@ -159,6 +159,8 @@ stateDiagram-v2
 
 Governance-Ledger produces upstream governance objects. The canonical CRI-CORE compiler remains the authority for compiled contract semantics.
 
+Generated policy artifacts use the canonical CRI-CORE compiler ingestion schema. Ledger does not maintain a separate runtime governance dialect or fallback compiler mode.
+
 ## Supported v0.1 Primitives
 
 Role requirement:
@@ -172,7 +174,7 @@ Structured output:
 ```json
 {
   "authority": {
-    "required_roles": ["managers"]
+    "required_roles": ["manager"]
   }
 }
 ```
@@ -187,7 +189,7 @@ Structured output:
 
 ```json
 {
-  "invariants": {
+  "authority": {
     "separation_of_duties": true
   }
 }
@@ -204,9 +206,14 @@ Structured output:
 ```json
 {
   "approvals": {
-    "thresholds": {
-      "transfer_funds": 1000000
-    }
+    "thresholds": [
+      {
+        "field": "amount",
+        "operator": ">",
+        "value": 1000000,
+        "requires_role": "manager"
+      }
+    ]
   }
 }
 ```
@@ -339,6 +346,8 @@ Draft output:
 - `generated/<policy>.validation.json`
 - `reviews/<policy>.review.json`
 
+Draft generation also validates extracted policy JSON against the canonical CRI-CORE compiler ingestion schema. Schema errors are emitted into `generated/<policy>.validation.json` with `severity == "error"`.
+
 Draft generation does not approve, compile, deploy, publish, or create runtime contracts.
 
 Human approval is explicit:
@@ -347,7 +356,7 @@ Human approval is explicit:
 governance-ledger approve reviews/finance_policy.review.json --actor governance-team
 ```
 
-Publishing requires an approved review:
+Publishing requires an approved review and generated policy JSON that passes compiler-ingestion schema validation:
 
 ```powershell
 governance-ledger publish reviews/finance_policy.review.json

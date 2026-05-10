@@ -6,9 +6,9 @@ import json
 from pathlib import Path
 from typing import Any
 
-from compiler.compile_policy import compile_policy
 from governance_ledger.extract import extract_constraints
 from governance_ledger.review import build_review_report
+from governance_ledger.validation import has_validation_errors, validate_compiler_policy
 
 
 def build_contract_files(
@@ -21,11 +21,18 @@ def build_contract_files(
     policy_input_path = Path(policy_path)
     policy_text = policy_input_path.read_text(encoding="utf-8")
     structured_policy = extract_constraints(policy_text)
+    compiler_validation = validate_compiler_policy(structured_policy)
+    if has_validation_errors(compiler_validation):
+        raise ValueError(
+            "Compiling requires extracted policy to match the canonical compiler ingestion schema."
+        )
     review_report = build_review_report(
         policy_text,
         structured_policy,
         source_document=policy_input_path.name,
     )
+    from compiler.compile_policy import compile_policy
+
     compiled_contract = compile_policy(structured_policy)
 
     _write_json(structured_policy_path, structured_policy)

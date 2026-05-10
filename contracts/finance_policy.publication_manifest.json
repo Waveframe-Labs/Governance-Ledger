@@ -1,7 +1,7 @@
 {
   "contracts": [
     {
-      "contract_hash": "sha256:468d80661be7731b5df4192d071261b35f7e023b5a587426f7714dbbbba11b47",
+      "contract_hash": "sha256:c9c054892b627f1f9e01089fd292b330688dde04693468e7231e01a5931532bd",
       "contract_id": "finance-policy",
       "contract_version": "0.1.0",
       "path": "contracts/finance-policy-0.1.0.contract.json"

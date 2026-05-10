@@ -147,7 +147,10 @@ def _format_constraint(constraint: dict[str, Any]) -> str:
     if constraint_type == "required_role":
         return f"required_role: {constraint.get('value')}"
     if constraint_type == "approval_threshold":
-        return f"threshold: {constraint.get('operation')} > {constraint.get('value')}"
+        return (
+            f"threshold: {constraint.get('field')} {constraint.get('operator')} "
+            f"{constraint.get('value')} requires {constraint.get('requires_role')}"
+        )
     if constraint_type == "separation_of_duties":
         return "separation_of_duties"
     return str(constraint_type)
