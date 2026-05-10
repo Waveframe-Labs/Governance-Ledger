@@ -6,6 +6,8 @@ import json
 from pathlib import Path
 from typing import Any
 
+from governance_ledger.paths import artifact_path
+
 
 def update_contract_registry(
     contracts_dir: str | Path,
@@ -60,7 +62,7 @@ def _registry_entry(
         "contract_id": compiled_contract["contract_id"],
         "contract_version": compiled_contract["contract_version"],
         "contract_hash": contract_hash,
-        "path": str(contract_path),
+        "path": artifact_path(contract_path),
         "published_at": published_at,
         "published_by": published_by,
     }

@@ -125,6 +125,8 @@ Contract artifacts and publication manifests are immutable publication outputs. 
 
 `contracts/index.json` is the published contract registry. It is the operational catalog for runtime discovery, audit visibility, and future registry integration.
 
+Publication manifests and registry entries store artifact paths in POSIX style with `/` separators, for example `contracts/finance-policy-0.1.0.contract.json`, even when generated on Windows.
+
 ## Detected Constraints
 
 Role requirement:

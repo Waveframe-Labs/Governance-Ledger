@@ -257,6 +257,20 @@ This becomes:
 
 That preserves auditability. A human reviewer can decide whether to rewrite, approve, reject, or extend the deterministic extraction rules.
 
+## Quickstart
+
+Run the full first-pass operator workflow:
+
+```powershell
+governance-ledger run policies
+governance-ledger check generated
+governance-ledger approve reviews/finance_policy.review.json --actor governance-team
+governance-ledger publish reviews/finance_policy.review.json
+governance-ledger list contracts
+```
+
+The generated publication manifest and `contracts/index.json` store artifact paths in POSIX style, for example `contracts/finance-policy-0.1.0.contract.json`, even on Windows.
+
 ## Basic Usage
 
 ```python

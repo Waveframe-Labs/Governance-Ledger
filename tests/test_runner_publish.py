@@ -7,6 +7,7 @@ from governance_ledger.publish import approve_review_file, publish_review_file
 from governance_ledger.runner import run_policy_directory
 from governance_ledger.checks import check_validation_directory, format_check_summary
 from governance_ledger.inspect import format_artifact, format_contract_list, list_contracts, show_artifact
+from governance_ledger.paths import artifact_path
 from governance_ledger.summary import build_pr_summary, format_run_summary
 
 
@@ -48,6 +49,12 @@ def test_run_policy_directory_generates_draft_artifacts_only(tmp_path):
 
     review = json.loads((reviews_dir / "finance_policy.review.json").read_text())
     assert review["review_status"] == "pending"
+
+
+def test_artifact_path_normalizes_windows_separators():
+    assert artifact_path("contracts\\finance-policy-0.1.0.contract.json") == (
+        "contracts/finance-policy-0.1.0.contract.json"
+    )
 
 
 def test_run_policy_directory_does_not_overwrite_existing_review(tmp_path):
@@ -121,7 +128,12 @@ def test_approve_then_publish_creates_contract_review_and_snapshot_artifacts(tmp
     manifest = json.loads(Path(result["manifest"]).read_text())
     assert manifest["published_at"] == "2026-05-09T12:30:00Z"
     assert manifest["contracts"][0]["contract_hash"].startswith("sha256:")
-    assert manifest["contracts"][0]["path"] == result["contract"]
+    assert manifest["contracts"][0]["path"] == Path(result["contract"]).as_posix()
+    assert "\\" not in manifest["contracts"][0]["path"]
+    assert manifest["reviews"][0]["path"] == Path(result["deployed_review"]).as_posix()
+    assert "\\" not in manifest["reviews"][0]["path"]
+    assert manifest["snapshots"][0]["path"] == Path(result["snapshot"]).as_posix()
+    assert "\\" not in manifest["snapshots"][0]["path"]
 
     registry = json.loads(Path(result["registry"]).read_text())
     assert registry["contracts"] == [
@@ -129,7 +141,7 @@ def test_approve_then_publish_creates_contract_review_and_snapshot_artifacts(tmp
             "contract_id": "finance-policy",
             "contract_version": "0.1.0",
             "contract_hash": manifest["contracts"][0]["contract_hash"],
-            "path": result["contract"],
+            "path": Path(result["contract"]).as_posix(),
             "published_at": "2026-05-09T12:30:00Z",
             "published_by": "governance-team",
         }

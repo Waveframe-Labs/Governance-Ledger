@@ -24,7 +24,11 @@
             "type": "string",
             "pattern": "^sha256:[A-Fa-f0-9]{64}$"
           },
-          "path": {"type": "string"},
+          "path": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^[^\\\\]*$"
+          },
           "published_at": {"type": ["string", "null"]},
           "published_by": {"type": "string"}
         },

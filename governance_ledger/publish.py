@@ -10,6 +10,7 @@ from typing import Any
 from governance_ledger.contract_linkage import attach_compiled_contract
 from governance_ledger.deployment import attach_deployment
 from governance_ledger.lifecycle import transition_review_status
+from governance_ledger.paths import artifact_path
 from governance_ledger.registry import update_contract_registry
 from governance_ledger.snapshot import create_snapshot
 
@@ -207,17 +208,17 @@ def _build_publication_manifest(
                 "contract_id": compiled_contract["contract_id"],
                 "contract_version": compiled_contract["contract_version"],
                 "contract_hash": contract_hash,
-                "path": str(contract_path),
+                "path": artifact_path(contract_path),
             }
         ],
         "reviews": [
             {
-                "path": str(deployed_review_path),
+                "path": artifact_path(deployed_review_path),
             }
         ],
         "snapshots": [
             {
-                "path": str(snapshot_path),
+                "path": artifact_path(snapshot_path),
             }
         ],
     }
