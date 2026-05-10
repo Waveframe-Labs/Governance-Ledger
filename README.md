@@ -65,24 +65,56 @@ notes: >
 
 Governance-Ledger is a deterministic governance operationalization layer for transforming human governance text into traceable, reviewable, executable governance artifacts compatible with CRI-CORE enforcement systems.
 
-The core idea is simple:
+## Why This Exists
 
-```text
-governance as deterministic state evolution
+Modern AI systems can generate probabilistic proposals, but execution authority must remain deterministic.
+
+Governance-Ledger operationalizes organizational governance into reviewable, versioned contract artifacts used by runtime enforcement systems such as Waveframe Guard and CRI-CORE.
+
+## Setup
+
+Create a virtual environment and install the release package:
+
+```powershell
+python -m venv venv
+.\venv\Scripts\Activate.ps1
+pip install governance-ledger
 ```
 
-Policy language enters as text. The system extracts only supported governance primitives, emits reviewable provenance, surfaces unsupported language as warnings, tracks lifecycle state, links externally compiled contracts, records deployment lineage, and creates deterministic snapshots for audit and rollback.
+## Quickstart
+
+Run the full first-pass operator workflow:
+
+```powershell
+governance-ledger run policies
+governance-ledger check generated
+governance-ledger approve reviews/finance_policy.review.json --actor governance-team
+governance-ledger publish reviews/finance_policy.review.json
+governance-ledger list contracts
+```
+
+The generated publication manifest and `contracts/index.json` store artifact paths in POSIX style, for example `contracts/finance-policy-0.1.0.contract.json`, even on Windows.
+
+## Governance Ecosystem
+
+- Governance-Ledger: governance operationalization.
+- CRI-CORE Contract Compiler: canonical runtime contract semantics.
+- Waveframe Guard: runtime SDK integration.
+- Proposal Normalizer: canonical proposal assembly.
+- CRI-CORE: deterministic admissibility enforcement.
+
+Policy language enters as text. Governance-Ledger extracts supported primitives, surfaces unsupported language as warnings, tracks lifecycle state, links compiled contracts, records deployment lineage, and creates snapshots for audit and rollback.
 
 ## What It Does
 
-- Deterministic extraction of supported governance constraints.
+- Extraction of supported governance constraints.
 - Structured review artifacts with source text attribution.
 - Authoring validation with explicit warnings.
 - Lifecycle transitions for review, approval, compilation, and deployment.
 - Lightweight compiled contract linkage by identity, version, and hash.
-- Deployment provenance for runtime lineage.
-- Deterministic snapshots of governance state.
-- Rollback lineage that restores from snapshots without erasing history.
+- Deployment traceability.
+- Snapshots of governance state.
+- Rollback from snapshots without erasing history.
 - Governance diffs across review versions, warnings, and deployments.
 
 ## What It Is Not
@@ -132,7 +164,7 @@ CRI-CORE Enforcement Compatibility
 
 ```mermaid
 flowchart TD
-    A["Policy Text"] --> B["Deterministic Extraction"]
+    A["Policy Text"] --> B["Extraction"]
     B --> C["Review Artifact"]
     C --> D["Validation Warnings"]
     D --> E["Lifecycle Approval"]
@@ -263,30 +295,6 @@ This becomes:
 ```
 
 That preserves auditability. A human reviewer can decide whether to rewrite, approve, reject, or extend the deterministic extraction rules.
-
-## Setup
-
-Create a virtual environment and install the release package:
-
-```powershell
-python -m venv venv
-.\venv\Scripts\Activate.ps1
-pip install governance-ledger
-```
-
-## Quickstart
-
-Run the full first-pass operator workflow:
-
-```powershell
-governance-ledger run policies
-governance-ledger check generated
-governance-ledger approve reviews/finance_policy.review.json --actor governance-team
-governance-ledger publish reviews/finance_policy.review.json
-governance-ledger list contracts
-```
-
-The generated publication manifest and `contracts/index.json` store artifact paths in POSIX style, for example `contracts/finance-policy-0.1.0.contract.json`, even on Windows.
 
 ## Basic Usage
 
