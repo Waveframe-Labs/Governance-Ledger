@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "governance-ledger"
-version = "0.1.0"
+version = "0.1.1"
 description = "Deterministic governance ledger, provenance, and policy translation for CRI-CORE."
 readme = "README.md"
 requires-python = ">=3.10"
