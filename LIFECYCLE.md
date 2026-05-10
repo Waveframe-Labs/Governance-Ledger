@@ -3,11 +3,11 @@ title: "Governance Lifecycle"
 document_type: "lifecycle"
 system: "Governance-Ledger"
 component: "lifecycle"
-version: "0.1.0"
+version: "0.1.1"
 status: "draft"
 
 created: "2026-05-08"
-updated: "2026-05-09"
+updated: "2026-05-10"
 
 authors:
   - "Waveframe Labs"

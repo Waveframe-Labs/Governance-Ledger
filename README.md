@@ -3,11 +3,11 @@ title: "Governance-Ledger"
 document_type: "overview"
 system: "Governance-Ledger"
 component: "core"
-version: "0.1.0"
+version: "0.1.1"
 status: "draft"
 
 created: "2026-05-08"
-updated: "2026-05-09"
+updated: "2026-05-10"
 
 authors:
   - "Waveframe Labs"
@@ -263,6 +263,16 @@ This becomes:
 ```
 
 That preserves auditability. A human reviewer can decide whether to rewrite, approve, reject, or extend the deterministic extraction rules.
+
+## Setup
+
+Create a virtual environment and install the release package:
+
+```powershell
+python -m venv venv
+.\venv\Scripts\Activate.ps1
+pip install governance-ledger
+```
 
 ## Quickstart
 
