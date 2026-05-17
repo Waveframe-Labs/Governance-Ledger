@@ -3,7 +3,7 @@ title: "Governance-Ledger Non-Goals"
 document_type: "reference"
 system: "Governance-Ledger"
 component: "core"
-version: "0.1.1"
+version: "0.2.0"
 status: "draft"
 
 created: "2026-05-08"

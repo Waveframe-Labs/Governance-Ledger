@@ -10,7 +10,6 @@ from typing import Any
 
 from governance_ledger.contract_linkage import attach_compiled_contract
 from governance_ledger.deployment import attach_deployment
-from governance_ledger.integration_paths import ensure_integration_paths
 from governance_ledger.lifecycle import transition_review_status
 from governance_ledger.paths import artifact_path
 from governance_ledger.schema_versions import PUBLICATION_MANIFEST_V1
@@ -188,7 +187,6 @@ def _compile_policy(
     *,
     lineage: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    ensure_integration_paths(compiler=True)
     from compiler.compile_policy import compile_policy
 
     compiler_input = dict(policy)

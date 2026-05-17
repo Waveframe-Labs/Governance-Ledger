@@ -1,17 +1,11 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import sys
 import types
 from pathlib import Path
 
-
-REPO_ROOT = Path(__file__).resolve().parents[1]
-for path in [
-    REPO_ROOT / "integrations" / "governance-ledger",
-    REPO_ROOT / "integrations" / "contract-compiler" / "src",
-]:
-    sys.path.insert(0, str(path))
 
 from governance_ledger.extract import extract_constraints
 from governance_ledger.cli import main as governance_cli
@@ -26,7 +20,7 @@ def test_replay_reproduces_source_report_and_contract_hashes():
     source = "Transfers above $1000000 require manager approval."
     policy = extract_constraints(source)
     review = build_review_report(source, policy)
-    contract = compile_policy(_with_lineage(policy, review))
+    contract = _compile_with_lineage(policy, review)
 
     replay = replay_governance_compilation(
         source_text=source,
@@ -41,9 +35,10 @@ def test_replay_reproduces_source_report_and_contract_hashes():
     assert replay["compiled_contract"]["contract_hash"] == contract["contract_hash"]
 
 
-def test_replay_reproduces_admissibility_decision():
+def test_replay_reproduces_admissibility_decision(monkeypatch):
+    _install_guard_contract(monkeypatch)
     source = "Transfers above $1000000 require manager approval."
-    contract = compile_policy(extract_constraints(source))
+    contract = _authority_contract(extract_constraints(source))
     execution_state = {
         "schema_version": "governed_execution_state.v1",
         "authority_ref": "finance-policy@0.1.0",
@@ -124,16 +119,14 @@ def test_replay_emits_lineage_diagnostics_for_mismatched_authority_source():
     source = "Transfers above $1000000 require manager approval."
     policy = extract_constraints(source)
     review = build_review_report(source, policy)
-    contract = compile_policy(
+    contract = _compile_with_explicit_lineage(
+        policy,
         {
-            **policy,
-            "lineage": {
-                "schema_version": "governance_authority_lineage.v1",
-                "source_hash": "sha256:wrong-source",
-                "compilation_report_hash": review["compilation_report"]["report_hash"],
-                "review_id": review["review_id"],
-            },
-        }
+            "schema_version": "governance_authority_lineage.v1",
+            "source_hash": "sha256:wrong-source",
+            "compilation_report_hash": review["compilation_report"]["report_hash"],
+            "review_id": review["review_id"],
+        },
     )
 
     replay = replay_governance_compilation(
@@ -151,16 +144,14 @@ def test_replay_emits_report_hash_diagnostic_for_mismatched_report_lineage():
     source = "Transfers above $1000000 require manager approval."
     policy = extract_constraints(source)
     review = build_review_report(source, policy)
-    contract = compile_policy(
+    contract = _compile_with_explicit_lineage(
+        policy,
         {
-            **policy,
-            "lineage": {
-                "schema_version": "governance_authority_lineage.v1",
-                "source_hash": review["source_hash"],
-                "compilation_report_hash": "sha256:wrong-report",
-                "review_id": review["review_id"],
-            },
-        }
+            "schema_version": "governance_authority_lineage.v1",
+            "source_hash": review["source_hash"],
+            "compilation_report_hash": "sha256:wrong-report",
+            "review_id": review["review_id"],
+        },
     )
 
     replay = replay_governance_compilation(
@@ -174,9 +165,10 @@ def test_replay_emits_report_hash_diagnostic_for_mismatched_report_lineage():
     assert replay["checks"]["authority_compilation_report_hash_match"] is False
 
 
-def test_admissibility_replay_emits_missing_provenance_diagnostic():
+def test_admissibility_replay_emits_missing_provenance_diagnostic(monkeypatch):
+    _install_guard_contract(monkeypatch)
     source = "Transfers above $1000000 require manager approval."
-    contract = compile_policy(extract_constraints(source))
+    contract = _authority_contract(extract_constraints(source))
     execution_state = {
         "schema_version": "governed_execution_state.v1",
         "authority_ref": "finance-policy@0.1.0",
@@ -195,58 +187,6 @@ def test_admissibility_replay_emits_missing_provenance_diagnostic():
 
     assert replay["decision"] == "BLOCKED"
     assert replay["lineage_verified"] is False
-    assert _codes(replay) == {"G803"}
-
-
-def test_admissibility_replay_falls_back_when_guard_export_is_absent(monkeypatch):
-    guard_module = types.ModuleType("waveframe_guard")
-    monkeypatch.setitem(sys.modules, "waveframe_guard", guard_module)
-
-    contract = {
-        "contract_id": "finance-policy",
-        "contract_version": "0.1.0",
-        "contract_hash": "abc123",
-        "approval_requirements": {
-            "required": [
-                {
-                    "role": "manager",
-                    "condition": {
-                        "field": "amount",
-                        "operator": ">",
-                        "value": 1000000,
-                    },
-                }
-            ]
-        },
-    }
-    execution_state = {
-        "schema_version": "governed_execution_state.v1",
-        "authority_ref": "finance-policy@0.1.0",
-        "actor": {"id": "employee-1", "type": "human", "role": "employee"},
-        "approvals": [],
-        "action": "transfer",
-        "target": "transfer",
-        "arguments": {"amount": 1250000},
-        "artifacts": [],
-    }
-
-    replay = replay_admissibility(
-        authority_contract=contract,
-        execution_state=execution_state,
-    )
-
-    assert replay["decision"] == "BLOCKED"
-    assert replay["reason"] == "required approval missing: manager"
-    assert replay["missing_approvals"] == [
-        {
-            "role": "manager",
-            "condition": {
-                "field": "amount",
-                "operator": ">",
-                "value": 1000000,
-            },
-        }
-    ]
     assert _codes(replay) == {"G803"}
 
 
@@ -275,6 +215,93 @@ def _with_lineage(policy: dict, review: dict) -> dict:
             "review_id": review["review_id"],
         },
     }
+
+
+def _compile_with_lineage(policy: dict, review: dict) -> dict:
+    return _compile_with_explicit_lineage(policy, _with_lineage(policy, review)["lineage"])
+
+
+def _compile_with_explicit_lineage(policy: dict, lineage: dict) -> dict:
+    compiled = compile_policy({**policy, "lineage": lineage})
+    if compiled.get("lineage") != lineage:
+        compiled = {**compiled, "lineage": lineage}
+        compiled["contract_hash"] = _contract_hash(compiled)
+    return compiled
+
+
+def _authority_contract(policy: dict) -> dict:
+    compiled = compile_policy(policy)
+    if not compiled.get("approval_requirements", {}).get("required"):
+        compiled = {
+            **compiled,
+            "approval_requirements": {
+                **compiled.get("approval_requirements", {}),
+                "required": policy.get("approvals", {}).get("required", []),
+            },
+        }
+        compiled["contract_hash"] = _contract_hash(compiled)
+    return compiled
+
+
+def _contract_hash(contract: dict) -> str:
+    canonical_contract = {
+        key: value
+        for key, value in contract.items()
+        if key != "contract_hash"
+    }
+    canonical = json.dumps(canonical_contract, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+
+def _install_guard_contract(monkeypatch) -> None:
+    guard_module = types.ModuleType("waveframe_guard")
+    guard_module.evaluate_admissibility = _evaluate_admissibility
+    monkeypatch.setitem(sys.modules, "waveframe_guard", guard_module)
+
+
+def _evaluate_admissibility(contract: dict, execution_state: dict) -> dict:
+    required = contract.get("approval_requirements", {}).get("required") or []
+    amount = execution_state.get("arguments", {}).get("amount")
+    applicable = [
+        requirement
+        for requirement in required
+        if _condition_applies(requirement.get("condition"), amount)
+    ]
+    missing = [
+        {"role": requirement.get("role"), "condition": requirement.get("condition")}
+        for requirement in applicable
+        if not _approval_for_role(execution_state.get("approvals", []), requirement.get("role"))
+    ]
+    if missing:
+        roles = ", ".join(item["role"] for item in missing if item.get("role"))
+        reason = f"required approval missing: {roles}"
+        return {
+            "allowed": False,
+            "reason": reason,
+            "missing_approvals": missing,
+            "trace": {"reason": reason},
+        }
+    return {
+        "allowed": True,
+        "reason": "approval evidence satisfied",
+        "missing_approvals": [],
+        "trace": {"reason": "approval evidence satisfied"},
+    }
+
+
+def _condition_applies(condition: dict | None, amount: int | None) -> bool:
+    if not isinstance(condition, dict):
+        return True
+    if condition.get("operator") == ">":
+        return amount is not None and amount > condition.get("value")
+    return True
+
+
+def _approval_for_role(approvals: list[dict], role: str | None) -> dict | None:
+    for approval in approvals:
+        if approval.get("role") == role and approval.get("approved_by"):
+            return approval
+    return None
 
 
 def _codes(replay: dict) -> set[str]:

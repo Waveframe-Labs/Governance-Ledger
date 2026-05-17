@@ -8,13 +8,6 @@ from pathlib import Path
 import pytest
 
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
-for path in [
-    REPO_ROOT / "integrations" / "governance-ledger",
-    REPO_ROOT / "integrations" / "contract-compiler" / "src",
-]:
-    sys.path.insert(0, str(path))
-
 from governance_ledger.extract import extract_constraints
 from governance_ledger.lifecycle import transition_review_status
 from governance_ledger.publish import publish_review_file

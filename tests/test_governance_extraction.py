@@ -1,13 +1,6 @@
 from __future__ import annotations
 
-import sys
-from pathlib import Path
-
 import pytest
-
-
-REPO_ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(REPO_ROOT / "integrations" / "governance-ledger"))
 
 from governance_ledger.extract import extract_constraints
 from governance_ledger.review import build_review_report

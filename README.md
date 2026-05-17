@@ -3,11 +3,11 @@ title: "Governance-Ledger"
 document_type: "overview"
 system: "Governance-Ledger"
 component: "core"
-version: "0.1.1"
+version: "0.2.0"
 status: "draft"
 
 created: "2026-05-08"
-updated: "2026-05-10"
+updated: "2026-05-17"
 
 authors:
   - "Waveframe Labs"
@@ -20,60 +20,90 @@ license: "Apache-2.0"
 repository: "https://github.com/Waveframe-Labs/Governance-Ledger"
 
 summary: >
-  Conceptual entry point for Governance-Ledger, including purpose,
-  boundaries, architecture, supported primitives, and basic usage.
-
-related_components:
-  - "CRI-CORE"
-  - "Waveframe Guard"
-  - "Proposal Normalizer"
-  - "CRI-CORE Contract Compiler"
-
-related_documents:
-  - "GOVERNANCE_OBJECT_MODEL.md"
-  - "LIFECYCLE.md"
-  - "PROVENANCE.md"
-  - "NON_GOALS.md"
-
-governance_primitives:
-  - "review_artifact"
-  - "lifecycle_transition"
-  - "deployment_provenance"
-  - "snapshot"
-  - "rollback"
-  - "governance_diff"
-
-determinism:
-  deterministic_ids: true
-  canonical_hashing: true
-  mutable_history: false
-
-provenance:
-  review_lineage: true
-  deployment_traceability: true
-  rollback_traceability: true
-  snapshot_integrity: true
-
-ai_assisted: "partial"
-
-notes: >
-  Governance-Ledger is deterministic infrastructure for governance state
-  evolution, not an autonomous policy reasoning system.
+  Governance-Ledger is governance compiler and semantic validation
+  infrastructure for deterministic governance operationalization.
 ---
 
 # Governance-Ledger
 
-Governance-Ledger is a deterministic governance operationalization layer for transforming human governance text into traceable, reviewable, executable governance artifacts compatible with CRI-CORE enforcement systems.
+Governance-Ledger turns governed source text into deterministic, reviewable, publishable governance authority. It is best understood as **Governance Compiler + Semantic Validation Infrastructure**.
+
+Ledger is not an AI policy interpreter, workflow automation layer, orchestration engine, or runtime execution system. It does not guess meaning from policy language. It normalizes supported governance statements, emits semantic diagnostics for unsafe or ambiguous structure, gates publication, preserves lineage, and makes governance authority replayable.
+
+## What It Provides
+
+- Governance normalization from source text into canonical governance statements.
+- Semantic diagnostics for ambiguous, conflicting, incomplete, or unsafe authority.
+- Governance compilation reports with coverage, diagnostics, statement traces, and report hashes.
+- Publication gating so governance authority cannot be published when blocking diagnostics are present.
+- Provenance chains from source governance to compilation reports to published authority contracts.
+- Publication manifests and contract registries with integrity hashes.
+- Lineage verification for authority artifacts.
+- Replay tooling for compilation and admissibility evidence.
+- Deterministic snapshots, rollback artifacts, diffs, and review lifecycle state.
+- Canonical schemas for generated governance, diagnostics, replay, publication, review, registry, and snapshot artifacts.
 
 ## Why This Exists
 
-Modern AI systems can generate probabilistic proposals, but execution authority must remain deterministic.
+Governance used by runtime systems must be deterministic, inspectable, and reproducible. Human governance language can enter the system, but publication authority should only come from normalized statements, explicit diagnostics, approved reviews, canonical compilation reports, and traceable provenance.
 
-Governance-Ledger operationalizes organizational governance into reviewable, versioned contract artifacts used by runtime enforcement systems such as Waveframe Guard and CRI-CORE.
+Governance-Ledger exists to make that path auditable:
 
-## Setup
+```text
+Governance Source
+  -> Normalized Statements
+  -> Semantic Diagnostics
+  -> Governance Compilation Report
+  -> Human Review and Approval
+  -> Published Authority Contract
+  -> Manifest, Registry, Snapshot
+  -> Lineage Verification and Replay
+```
 
-Create a virtual environment and install the release package:
+## Core Concepts
+
+**Governance normalization**
+
+Ledger classifies governance statements and converts supported language into canonical policy structures. Unsupported or ambiguous language remains visible as diagnostics; it is not silently converted into executable authority.
+
+**Semantic diagnostics**
+
+Diagnostics identify governance risks such as missing authority, overlapping thresholds, duplicate roles, weak normalization coverage, and publication-blocking compiler issues. Diagnostics are structured artifacts with stable codes, severity, domains, and publication impact.
+
+**Governance compilation reports**
+
+Compilation reports bind source governance identity, normalized statement traces, coverage metrics, diagnostics, compiler summaries, and a deterministic `report_hash`. They are evidence objects, not log output.
+
+**Publication gating**
+
+Publishing requires an approved review and generated policy that passes compiler-ingestion validation. Blocking diagnostics prevent publication. Published contract, manifest, registry, deployed review, and snapshot artifacts are written as one transaction.
+
+**Lineage verification**
+
+Published authority contracts include `governance_authority_lineage.v1` linking the authority to source governance and compilation report hashes. Ledger can verify that lineage independently.
+
+**Replayability**
+
+Replay tooling reproduces compilation evidence from source governance and can replay admissibility decisions against authority and execution state. Replay failures produce diagnostics rather than silent disagreement.
+
+**Deterministic governance operationalization**
+
+Ledger records governance state transitions and publication artifacts with deterministic identifiers, hashes, normalized paths, immutable publication outputs, and rollback-capable snapshots.
+
+## What It Is Not
+
+Governance-Ledger is not:
+
+- AI policy interpretation.
+- Legal advice or legal reasoning.
+- A workflow automation product.
+- An orchestration engine.
+- A runtime mutation executor.
+- A replacement for CRI-CORE Contract Compiler semantics.
+- A replacement for Waveframe Guard runtime enforcement.
+- A system that infers unsupported governance meaning.
+
+## Install
 
 ```powershell
 python -m venv venv
@@ -81,163 +111,121 @@ python -m venv venv
 pip install governance-ledger
 ```
 
-## Quickstart
+Ledger relies on installed package contracts for integration behavior:
 
-Run the full first-pass operator workflow:
+- `cricore-contract-compiler>=0.3.0`
+- `waveframe-guard>=0.5.0`
+
+Local checkout path resolution is not part of production behavior.
+
+## Command Workflow
+
+Generate normalized governance drafts and validation artifacts:
 
 ```powershell
-governance-ledger run policies
-governance-ledger check generated
+governance-ledger run policies/
+```
+
+Check publication readiness:
+
+```powershell
+governance-ledger check generated/
+```
+
+Approve a reviewed governance artifact:
+
+```powershell
 governance-ledger approve reviews/finance_policy.review.json --actor governance-team
+```
+
+Publish approved governance authority:
+
+```powershell
 governance-ledger publish reviews/finance_policy.review.json
+```
+
+Inspect published authority:
+
+```powershell
 governance-ledger list contracts
+governance-ledger show contracts/finance-policy-0.1.0.contract.json
 ```
 
-The generated publication manifest and `contracts/index.json` store artifact paths in POSIX style, for example `contracts/finance-policy-0.1.0.contract.json`, even on Windows.
+Verify authority lineage:
 
-## Governance Ecosystem
+```powershell
+governance-ledger verify-lineage --contract contracts/finance-policy-0.1.0.contract.json
+```
 
-- Governance-Ledger: governance operationalization.
-- CRI-CORE Contract Compiler: canonical runtime contract semantics.
-- Waveframe Guard: runtime SDK integration.
-- Proposal Normalizer: canonical proposal assembly.
-- CRI-CORE: deterministic admissibility enforcement.
+Replay source governance into compilation evidence:
 
-Policy language enters as text. Governance-Ledger extracts supported primitives, surfaces unsupported language as warnings, tracks lifecycle state, links compiled contracts, records deployment lineage, and creates snapshots for audit and rollback.
+```powershell
+governance-ledger replay-authority `
+  --source policies/finance_policy.txt `
+  --report reviews/finance_policy.deployed.review.json `
+  --contract contracts/finance-policy-0.1.0.contract.json
+```
 
-## What It Does
+Replay execution admissibility:
 
-- Extraction of supported governance constraints.
-- Structured review artifacts with source text attribution.
-- Authoring validation with explicit warnings.
-- Lifecycle transitions for review, approval, compilation, and deployment.
-- Lightweight compiled contract linkage by identity, version, and hash.
-- Deployment traceability.
-- Snapshots of governance state.
-- Rollback from snapshots without erasing history.
-- Governance diffs across review versions, warnings, and deployments.
+```powershell
+governance-ledger replay-execution `
+  --contract contracts/finance-policy-0.1.0.contract.json `
+  --execution-state execution_state.json
+```
 
-## What It Is Not
-
-Governance-Ledger is not:
-
-- An AI governance engine.
-- Autonomous policy reasoning.
-- Runtime enforcement.
-- Semantic governance inference.
-- Legal interpretation AI.
-- A replacement for human governance ownership.
-- A runtime admissibility evaluator.
-- A system that executes mutations.
-
-It does not infer unsupported governance meaning. If language is unsupported or ambiguous, it becomes a warning instead of hidden structure.
-
-## Architecture
+## Artifact Layout
 
 ```text
-Policy Text
-    |
-    v
-Extraction
-    |
-    v
-Review Artifact
-    |
-    v
-Validation Warnings
-    |
-    v
-Lifecycle Approval
-    |
-    v
-Compiled Contract Linkage
-    |
-    v
-Deployment Provenance
-    |
-    v
-Snapshot / Rollback
-    |
-    v
-CRI-CORE Enforcement Compatibility
+policies/      source governance text
+generated/     normalized policy drafts and validation artifacts
+reviews/       review, approval, compilation, and deployment evidence
+contracts/     immutable published authority contracts, manifests, registry
+snapshots/     deterministic governance state snapshots
+schemas/       canonical JSON schemas
 ```
 
-```mermaid
-flowchart TD
-    A["Policy Text"] --> B["Extraction"]
-    B --> C["Review Artifact"]
-    C --> D["Validation Warnings"]
-    D --> E["Lifecycle Approval"]
-    E --> F["Compiled Contract Linkage"]
-    F --> G["Deployment Provenance"]
-    G --> H["Snapshot"]
-    H --> I["Rollback Lineage"]
-    F --> J["CRI-CORE Enforcement Compatibility"]
-    G --> J
-```
+Publication produces:
 
-```mermaid
-stateDiagram-v2
-    [*] --> pending
-    pending --> reviewed
-    pending --> rejected
-    reviewed --> approved
-    reviewed --> rejected
-    approved --> compiled
-    compiled --> deployed
-    rejected --> [*]
-    deployed --> [*]
-```
+- `contracts/<contract-id>-<version>.contract.json`
+- `contracts/<policy>.publication_manifest.json`
+- `contracts/index.json`
+- `reviews/<policy>.deployed.review.json`
+- `snapshots/<snapshot-id>.json`
 
-Governance-Ledger produces upstream governance objects. The canonical CRI-CORE compiler remains the authority for compiled contract semantics.
+Publication artifacts use normalized POSIX-style paths such as `contracts/finance-policy-0.1.0.contract.json`, even on Windows.
 
-Generated policy artifacts use the canonical CRI-CORE compiler ingestion schema. Ledger does not maintain a separate runtime governance dialect or fallback compiler mode.
+## Example Normalization
 
-## Supported v0.1 Primitives
-
-Role requirement:
-
-```text
-Only managers may approve transfers.
-```
-
-Structured output:
-
-```json
-{
-  "authority": {
-    "required_roles": ["manager"]
-  }
-}
-```
-
-Separation of duties:
-
-```text
-Proposer and approver must be separate.
-```
-
-Structured output:
-
-```json
-{
-  "authority": {
-    "separation_of_duties": true
-  }
-}
-```
-
-Transfer threshold:
+Source governance:
 
 ```text
 Transfers above $1M require manager approval.
+Requester and approver must be separate.
+All transfer approvals must be recorded for audit purposes.
 ```
 
-Structured output:
+Normalized policy excerpt:
 
 ```json
 {
+  "contract_id": "finance-policy",
+  "contract_version": "0.1.0",
+  "authority": {
+    "required_roles": ["manager"],
+    "separation_of_duties": true
+  },
   "approvals": {
+    "required": [
+      {
+        "role": "manager",
+        "condition": {
+          "field": "amount",
+          "operator": ">",
+          "value": 1000000
+        }
+      }
+    ],
     "thresholds": [
       {
         "field": "amount",
@@ -246,174 +234,62 @@ Structured output:
         "requires_role": "manager"
       }
     ]
+  },
+  "artifacts": {
+    "required": ["approval_audit_record"]
   }
 }
 ```
 
-## Review Artifacts
+## Diagnostics and Gates
 
-Review artifacts explain what was detected and where it came from:
+Validation artifacts and review artifacts include structured warnings and compiler diagnostics. A diagnostic may be informational, warning-level, or publication-blocking.
 
-```json
-{
-  "review_id": "review-001",
-  "created_at": "2026-05-07T20:14:00Z",
-  "source_document": "finance_policy.txt",
-  "review_status": "pending",
-  "detected_constraints": [
-    {
-      "type": "required_role",
-      "value": "manager",
-      "source_text": "require manager approval"
-    }
-  ],
-  "warnings": []
-}
-```
+Examples of publication-blocking conditions:
 
-## Why Unsupported Governance Becomes Warnings
+- Ambiguous authority, such as approval without a named approving role.
+- Low governance normalization coverage.
+- Overlapping approval thresholds.
+- Duplicate or conflicting approval requirements.
+- Compiler schema violations.
+- Missing or mismatched provenance lineage.
 
-Unsupported governance language must not silently disappear, and it must not be guessed into executable structure.
+`governance-ledger check generated/` exits non-zero when validation contains error-severity diagnostics.
 
-For example:
+## Lineage and Integrity
 
-```text
-Transfers require reasonable approval timing.
-```
-
-This becomes:
+Published authority contracts include lineage:
 
 ```json
 {
-  "warnings": [
-    {
-      "type": "unsupported_constraint",
-      "text": "reasonable approval timing"
-    }
-  ]
+  "lineage": {
+    "schema_version": "governance_authority_lineage.v1",
+    "source_hash": "sha256:...",
+    "compilation_report_hash": "sha256:...",
+    "review_id": "review-finance_policy"
+  }
 }
 ```
 
-That preserves auditability. A human reviewer can decide whether to rewrite, approve, reject, or extend the deterministic extraction rules.
+Publication manifests and registries carry source and report hashes so consumers can verify the authority chain without trusting local build state.
 
-## Basic Usage
+## Schemas
 
-```python
-from governance_ledger import (
-    attach_compiled_contract,
-    attach_deployment,
-    create_snapshot,
-    extract_constraints,
-    review_constraints,
-    transition_review_status,
-)
+Canonical schemas live in [schemas/](schemas/), including:
 
-text = """
-Transfers above $1M require manager approval.
-Proposer and approver must be separate.
-"""
-
-policy = extract_constraints(text)
-review = review_constraints(text, source_document="finance_policy.txt")
-
-review = transition_review_status(review, "reviewed", actor="governance-team")
-review = transition_review_status(review, "approved", actor="governance-team")
-
-review = attach_compiled_contract(
-    review,
-    {
-        "contract_id": "finance-core",
-        "contract_version": "1.0.0",
-        "contract_hash": "abc123",
-    },
-    actor="compiler-service",
-)
-
-review = attach_deployment(
-    review,
-    environment="production",
-    runtime="waveframe-guard",
-    deployed_by="ops-team",
-    enforcement_engine_version="0.12.0",
-)
-
-snapshot = create_snapshot(review)
-```
-
-## Operational Workflow
-
-Primary repository layout:
-
-```text
-policies/     source governance text
-generated/    extraction and validation drafts
-reviews/      pending, approved, and deployed review artifacts
-contracts/    runtime contract artifacts only
-snapshots/    deterministic governance snapshots
-```
-
-Draft generation reads policy text from `policies/` and writes machine-generated constraints plus pending review artifacts:
-
-```powershell
-governance-ledger run policies/
-```
-
-Draft output:
-
-- `generated/<policy>.generated.json`
-- `generated/<policy>.validation.json`
-- `reviews/<policy>.review.json`
-
-Draft generation also validates extracted policy JSON against the canonical CRI-CORE compiler ingestion schema. Schema errors are emitted into `generated/<policy>.validation.json` with `severity == "error"`.
-
-Draft generation does not approve, compile, deploy, publish, or create runtime contracts.
-
-Human approval is explicit:
-
-```powershell
-governance-ledger approve reviews/finance_policy.review.json --actor governance-team
-```
-
-Publishing requires an approved review and generated policy JSON that passes compiler-ingestion schema validation:
-
-```powershell
-governance-ledger publish reviews/finance_policy.review.json
-```
-
-Publish output:
-
-- `contracts/<contract-id>-<version>.contract.json`
-- `contracts/<policy>.publication_manifest.json`
-- `contracts/index.json`
-- `reviews/<policy>.deployed.review.json`
-- `snapshots/<snapshot-id>.json`
-
-Runtime contracts should only exist in `contracts/`. They should not be written to `generated/`, `reviews/`, or `policies/`.
-
-Files in `contracts/` are immutable publication outputs. Publishing is idempotent when the existing content is identical, but Governance-Ledger refuses to overwrite an existing contract or publication manifest with different content.
-
-Generated validation artifacts include warning severity. CI can block publication workflows with:
-
-```powershell
-governance-ledger check generated
-```
-
-The check fails when any generated validation artifact contains `severity == "error"`.
-
-Published contracts can be listed:
-
-```powershell
-governance-ledger list contracts
-```
-
-Any JSON artifact can be inspected:
-
-```powershell
-governance-ledger show contracts/finance-policy-0.1.0.contract.json
-```
+- Governance source identity.
+- Governance diagnostics.
+- Governance compilation reports.
+- Replay authority requests.
+- Replay execution requests.
+- Publication manifests.
+- Contract registries.
+- Reviews.
+- Snapshots.
 
 ## Documentation
 
+- [CHANGELOG.md](CHANGELOG.md)
 - [GOVERNANCE_OBJECT_MODEL.md](GOVERNANCE_OBJECT_MODEL.md)
 - [LIFECYCLE.md](LIFECYCLE.md)
 - [PROVENANCE.md](PROVENANCE.md)
