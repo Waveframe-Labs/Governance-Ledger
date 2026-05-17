@@ -16,6 +16,11 @@ from governance_ledger.inspect import (
     list_contracts,
     show_artifact,
 )
+from governance_ledger.replay import (
+    replay_admissibility,
+    replay_governance_compilation,
+    verify_authority_lineage,
+)
 from governance_ledger.summary import (
     build_pr_summary,
     format_publish_summary,
@@ -69,6 +74,31 @@ def main(argv: Sequence[str] | None = None) -> int:
     show_parser.add_argument("path")
     show_parser.add_argument("--json", action="store_true")
 
+    replay_authority_parser = subparsers.add_parser(
+        "replay-authority",
+        help="replay governance source into compilation report and authority contract",
+    )
+    replay_authority_parser.add_argument("--source", required=True)
+    replay_authority_parser.add_argument("--report")
+    replay_authority_parser.add_argument("--contract")
+    replay_authority_parser.add_argument("--json", action="store_true")
+
+    replay_execution_parser = subparsers.add_parser(
+        "replay-execution",
+        help="replay deterministic admissibility from authority contract and execution state",
+    )
+    replay_execution_parser.add_argument("--contract", required=True)
+    replay_execution_parser.add_argument("--execution-state", required=True)
+    replay_execution_parser.add_argument("--json", action="store_true")
+
+    verify_lineage_parser = subparsers.add_parser(
+        "verify-lineage",
+        help="verify authority provenance lineage against an optional compilation report",
+    )
+    verify_lineage_parser.add_argument("--contract", required=True)
+    verify_lineage_parser.add_argument("--report")
+    verify_lineage_parser.add_argument("--json", action="store_true")
+
     args = parser.parse_args(argv)
 
     if args.command == "run":
@@ -115,11 +145,29 @@ def main(argv: Sequence[str] | None = None) -> int:
         result = check_validation_directory(args.generated_dir)
     elif args.command == "list":
         result = list_contracts(args.contracts_dir)
+    elif args.command == "replay-authority":
+        result = replay_governance_compilation(
+            source_text=Path(args.source).read_text(encoding="utf-8"),
+            expected_report=_read_json_arg(args.report),
+            expected_contract=_read_json_arg(args.contract),
+        )
+    elif args.command == "replay-execution":
+        result = replay_admissibility(
+            authority_contract=_read_json_arg(args.contract),
+            execution_state=_read_json_arg(args.execution_state),
+        )
+    elif args.command == "verify-lineage":
+        result = verify_authority_lineage(
+            authority_contract=_read_json_arg(args.contract),
+            compilation_report=_read_json_arg(args.report),
+        )
     else:
         result = show_artifact(args.path)
 
     if getattr(args, "json", False):
         print(json.dumps(result, indent=2, sort_keys=True))
+        if args.command in {"replay-authority", "replay-execution", "verify-lineage"}:
+            return 0 if _replay_ok(result) else 1
     elif args.command == "run":
         print(format_run_summary(result))
     elif args.command == "publish":
@@ -131,6 +179,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         print(format_contract_list(result))
     elif args.command == "show":
         print(format_artifact(args.path, result))
+    elif args.command in {"replay-authority", "replay-execution", "verify-lineage"}:
+        print(_format_replay_summary(result))
+        return 0 if _replay_ok(result) else 1
     else:
         print(
             "\n".join(
@@ -146,6 +197,38 @@ def main(argv: Sequence[str] | None = None) -> int:
             )
         )
     return 0
+
+
+def _read_json_arg(path: str | None) -> dict | None:
+    if path is None:
+        return None
+    return json.loads(Path(path).read_text(encoding="utf-8"))
+
+
+def _replay_ok(result: dict) -> bool:
+    if "replay_verified" in result:
+        return bool(result["replay_verified"])
+    if "lineage_verified" in result:
+        return bool(result["lineage_verified"])
+    return not result.get("diagnostics")
+
+
+def _format_replay_summary(result: dict) -> str:
+    status = "VERIFIED" if _replay_ok(result) else "FAILED"
+    lines = [
+        "[Governance Replay]",
+        "",
+        f"Status: {status}",
+    ]
+    if result.get("authority_ref"):
+        lines.append(f"Authority: {result['authority_ref']}")
+    if result.get("contract_hash"):
+        lines.append(f"Contract hash: {result['contract_hash']}")
+    diagnostics = result.get("diagnostics") or []
+    if diagnostics:
+        lines.extend(["", "Diagnostics:"])
+        lines.extend(f"  {item['text']}" for item in diagnostics)
+    return "\n".join(lines)
 
 
 if __name__ == "__main__":
