@@ -195,9 +195,32 @@ def _compile_policy(
     if lineage is not None:
         compiler_input["lineage"] = lineage
     compiled_contract = compile_policy(compiler_input)
+    if lineage is not None:
+        compiled_contract = _with_authority_lineage(compiled_contract, lineage)
     if not compiled_contract.get("contract_id") or not compiled_contract.get("contract_version"):
         raise ValueError("Canonical compiler output missing contract identity fields.")
     return compiled_contract
+
+
+def _with_authority_lineage(
+    compiled_contract: dict[str, Any],
+    lineage: dict[str, Any],
+) -> dict[str, Any]:
+    contract = dict(compiled_contract)
+    if contract.get("lineage") != lineage:
+        contract["lineage"] = dict(lineage)
+        contract["contract_hash"] = _compute_contract_hash(contract)
+    return contract
+
+
+def _compute_contract_hash(compiled_contract: dict[str, Any]) -> str:
+    canonical_contract = {
+        key: value
+        for key, value in compiled_contract.items()
+        if key != "contract_hash"
+    }
+    canonical = json.dumps(canonical_contract, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
 def _publication_lineage(review: dict[str, Any]) -> dict[str, Any]:

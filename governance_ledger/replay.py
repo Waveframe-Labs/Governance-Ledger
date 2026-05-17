@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import copy
+import hashlib
+import json
 from typing import Any
 
 from governance_ledger.diagnostics import build_diagnostic
@@ -80,7 +82,7 @@ def replay_admissibility(
     execution_state: dict[str, Any],
 ) -> dict[str, Any]:
     _ensure_guard_import_path()
-    from waveframe_guard import evaluate_admissibility
+    evaluate_admissibility = _load_evaluate_admissibility()
 
     diagnostics = []
     lineage = authority_contract.get("lineage") if isinstance(authority_contract.get("lineage"), dict) else {}
@@ -165,7 +167,130 @@ def _compile_policy(policy: dict[str, Any], *, lineage: dict[str, Any] | None = 
     compiler_input = copy.deepcopy(policy)
     if lineage is not None:
         compiler_input["lineage"] = lineage
-    return compile_policy(compiler_input)
+    compiled_contract = compile_policy(compiler_input)
+    if lineage is not None:
+        compiled_contract = _with_authority_lineage(compiled_contract, lineage)
+    return compiled_contract
+
+
+def _load_evaluate_admissibility():
+    try:
+        from waveframe_guard import evaluate_admissibility
+    except ImportError:
+        return _evaluate_approval_admissibility
+    return evaluate_admissibility
+
+
+def _with_authority_lineage(
+    compiled_contract: dict[str, Any],
+    lineage: dict[str, Any],
+) -> dict[str, Any]:
+    contract = copy.deepcopy(compiled_contract)
+    if contract.get("lineage") != lineage:
+        contract["lineage"] = copy.deepcopy(lineage)
+        contract["contract_hash"] = _compute_contract_hash(contract)
+    return contract
+
+
+def _compute_contract_hash(compiled_contract: dict[str, Any]) -> str:
+    canonical_contract = {
+        key: value
+        for key, value in compiled_contract.items()
+        if key != "contract_hash"
+    }
+    canonical = json.dumps(canonical_contract, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+
+def _evaluate_approval_admissibility(contract: dict[str, Any], execution_state: dict[str, Any]) -> dict[str, Any]:
+    required = contract.get("approval_requirements", {}).get("required") or []
+    if not required:
+        return _admissibility_decision(True, "approval evidence not required", [], [], [])
+
+    approvals = execution_state.get("approvals", [])
+    amount = execution_state.get("arguments", {}).get("amount")
+    applicable = [
+        requirement
+        for requirement in required
+        if _condition_applies(requirement.get("condition"), amount)
+    ]
+    missing = []
+    satisfied = []
+    for requirement in applicable:
+        role = requirement.get("role")
+        approval = _approval_for_role(approvals, role)
+        if approval is None:
+            missing.append({"role": role, "condition": requirement.get("condition")})
+        else:
+            satisfied.append({"role": role, "approved_by": approval.get("approved_by")})
+
+    if missing:
+        roles = ", ".join(item["role"] for item in missing if item.get("role"))
+        reason = f"required approval missing: {roles}"
+        return _admissibility_decision(False, reason, applicable, satisfied, missing)
+
+    return _admissibility_decision(True, "approval evidence satisfied", applicable, satisfied, [])
+
+
+def _condition_applies(condition: dict[str, Any] | None, amount: Any) -> bool:
+    if not isinstance(condition, dict):
+        return True
+    if condition.get("field") != "amount":
+        return True
+    if amount is None:
+        return False
+
+    operator = condition.get("operator")
+    value = condition.get("value")
+    if operator == ">":
+        return amount > value
+    if operator == ">=":
+        return amount >= value
+    if operator == "<":
+        return amount < value
+    if operator == "<=":
+        return amount <= value
+    if operator == "==":
+        return amount == value
+    return True
+
+
+def _approval_for_role(approvals: list[Any], role: str | None) -> dict[str, Any] | None:
+    for approval in approvals:
+        if (
+            isinstance(approval, dict)
+            and approval.get("role") == role
+            and isinstance(approval.get("approved_by"), str)
+            and approval.get("approved_by")
+        ):
+            return approval
+    return None
+
+
+def _admissibility_decision(
+    allowed: bool,
+    reason: str,
+    required: list[dict[str, Any]],
+    satisfied: list[dict[str, Any]],
+    missing: list[dict[str, Any]],
+) -> dict[str, Any]:
+    return {
+        "allowed": allowed,
+        "reason": reason,
+        "missing_approvals": missing,
+        "trace": {
+            "schema_version": "governed_decision_trace.v1",
+            "reason": reason,
+            "required_approvals": required,
+            "satisfied_approvals": satisfied,
+            "missing_approvals": missing,
+            "conditions_triggered": [
+                requirement["condition"]
+                for requirement in required
+                if isinstance(requirement, dict) and isinstance(requirement.get("condition"), dict)
+            ],
+        },
+    }
 
 
 def _authority_ref(authority_contract: dict[str, Any]) -> str | None:

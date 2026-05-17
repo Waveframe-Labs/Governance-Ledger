@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import sys
+import types
 from pathlib import Path
 
 
@@ -194,6 +195,58 @@ def test_admissibility_replay_emits_missing_provenance_diagnostic():
 
     assert replay["decision"] == "BLOCKED"
     assert replay["lineage_verified"] is False
+    assert _codes(replay) == {"G803"}
+
+
+def test_admissibility_replay_falls_back_when_guard_export_is_absent(monkeypatch):
+    guard_module = types.ModuleType("waveframe_guard")
+    monkeypatch.setitem(sys.modules, "waveframe_guard", guard_module)
+
+    contract = {
+        "contract_id": "finance-policy",
+        "contract_version": "0.1.0",
+        "contract_hash": "abc123",
+        "approval_requirements": {
+            "required": [
+                {
+                    "role": "manager",
+                    "condition": {
+                        "field": "amount",
+                        "operator": ">",
+                        "value": 1000000,
+                    },
+                }
+            ]
+        },
+    }
+    execution_state = {
+        "schema_version": "governed_execution_state.v1",
+        "authority_ref": "finance-policy@0.1.0",
+        "actor": {"id": "employee-1", "type": "human", "role": "employee"},
+        "approvals": [],
+        "action": "transfer",
+        "target": "transfer",
+        "arguments": {"amount": 1250000},
+        "artifacts": [],
+    }
+
+    replay = replay_admissibility(
+        authority_contract=contract,
+        execution_state=execution_state,
+    )
+
+    assert replay["decision"] == "BLOCKED"
+    assert replay["reason"] == "required approval missing: manager"
+    assert replay["missing_approvals"] == [
+        {
+            "role": "manager",
+            "condition": {
+                "field": "amount",
+                "operator": ">",
+                "value": 1000000,
+            },
+        }
+    ]
     assert _codes(replay) == {"G803"}
 
 

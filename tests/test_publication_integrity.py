@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import sys
+import types
 from pathlib import Path
 
 import pytest
@@ -58,6 +59,55 @@ def test_publish_commits_authority_transaction_with_registry_integrity(tmp_path)
     assert contract["lineage"]["schema_version"] == "governance_authority_lineage.v1"
     assert contract["lineage"]["source_hash"] == deployed_review["source_hash"]
     assert contract["lineage"]["compilation_report_hash"] == deployed_review["compilation_report"]["report_hash"]
+    assert manifest["contracts"][0]["source_hash"] == deployed_review["source_hash"]
+    assert registry["contracts"][0]["source_hash"] == deployed_review["source_hash"]
+
+
+def test_publish_stamps_lineage_when_installed_compiler_drops_unknown_fields(tmp_path, monkeypatch):
+    compiler_module = types.ModuleType("compiler")
+    compile_policy_module = types.ModuleType("compiler.compile_policy")
+
+    def compile_policy_without_lineage(policy: dict) -> dict:
+        return {
+            "contract_id": policy["contract_id"],
+            "contract_version": policy["contract_version"],
+            "approval_requirements": policy.get("approvals", {}),
+            "authority_requirements": policy.get("authority", {}),
+            "artifact_requirements": policy.get("artifacts", {}),
+            "stage_requirements": policy.get("stages", {}),
+            "invariants": {},
+            "contract_hash": "compiler-hash-without-lineage",
+        }
+
+    compile_policy_module.compile_policy = compile_policy_without_lineage
+    monkeypatch.setitem(sys.modules, "compiler", compiler_module)
+    monkeypatch.setitem(sys.modules, "compiler.compile_policy", compile_policy_module)
+
+    paths = _paths(tmp_path)
+    review_path = _write_approved_review(
+        paths,
+        "finance_policy",
+        "Transfers above $1000000 require manager approval.",
+        timestamp="2026-05-13T12:00:00Z",
+    )
+
+    publication = publish_review_file(
+        review_path,
+        generated_dir=paths["generated"],
+        contracts_dir=paths["contracts"],
+        reviews_dir=paths["reviews"],
+        snapshots_dir=paths["snapshots"],
+        timestamp="2026-05-13T12:30:00Z",
+    )
+
+    contract = _read_json(Path(publication["contract"]))
+    manifest = _read_json(Path(publication["manifest"]))
+    registry = _read_json(Path(publication["registry"]))
+    deployed_review = _read_json(Path(publication["deployed_review"]))
+
+    assert contract["lineage"]["source_hash"] == deployed_review["source_hash"]
+    assert contract["lineage"]["compilation_report_hash"] == deployed_review["compilation_report"]["report_hash"]
+    assert contract["contract_hash"] != "compiler-hash-without-lineage"
     assert manifest["contracts"][0]["source_hash"] == deployed_review["source_hash"]
     assert registry["contracts"][0]["source_hash"] == deployed_review["source_hash"]
 
