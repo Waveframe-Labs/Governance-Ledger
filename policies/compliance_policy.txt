@@ -1,0 +1,6 @@
+Only users with the Compliance role may execute compliance reviews.
+Compliance review requests above $5000 require director approval.
+Compliance review requests must transition from submitted to approved.
+The requester and approver must be different employees.
+All compliance approvals must be recorded for audit purposes.
+Unauthorized compliance review attempts must be reported to compliance.

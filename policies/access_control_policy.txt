@@ -1,0 +1,6 @@
+Only users with the Admin role may access production systems.
+Access requests above $1000 require manager approval.
+Access requests must transition from submitted to approved.
+The requester and approver must be different employees.
+All access decisions must be recorded for audit purposes.
+Unauthorized access attempts must be reported to compliance.

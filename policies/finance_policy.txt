@@ -1,2 +1,6 @@
-Transfers above $1M require manager approval.
-Proposer and approver must be separate.
+Only users with the Manager role may execute financial transfers.
+Any transfer exceeding $10000 must receive approval from a Director before execution.
+The requester and approver must be different employees.
+Financial transfer requests must transition from submitted to approved.
+All financial approvals must be recorded for audit purposes.
+Unauthorized transfer attempts must be reported to compliance.
