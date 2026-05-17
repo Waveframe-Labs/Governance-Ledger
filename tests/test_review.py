@@ -16,33 +16,43 @@ def test_builds_review_report_with_source_text():
         source_document="finance_policy.txt",
     )
 
-    assert report == {
-        "review_id": "review-001",
-        "created_at": "2026-05-07T20:14:00Z",
-        "source_document": "finance_policy.txt",
-        "review_status": "pending",
-        "detected_constraints": [
-            {
-                "type": "required_role",
-                "value": "manager",
-                "source_text": "require manager approval",
-            },
-            {
-                "type": "separation_of_duties",
-                "value": True,
-                "source_text": "must be separate",
-            },
-            {
-                "type": "approval_threshold",
+    assert report["review_id"] == "review-001"
+    assert report["created_at"] == "2026-05-07T20:14:00Z"
+    assert report["source_document"] == "finance_policy.txt"
+    assert report["review_status"] == "pending"
+    assert report["warnings"] == []
+    assert report["detected_constraints"] == [
+        {
+            "type": "required_role",
+            "value": "manager",
+            "source_text": "Transfers above $1M require manager approval.",
+        },
+        {
+            "type": "approval_threshold",
+            "field": "amount",
+            "operator": ">",
+            "value": 1_000_000,
+            "requires_role": "manager",
+            "source_text": "above $1M",
+        },
+        {
+            "type": "required_approval",
+            "role": "manager",
+            "condition": {
                 "field": "amount",
                 "operator": ">",
                 "value": 1_000_000,
-                "requires_role": "manager",
-                "source_text": "above $1M",
             },
-        ],
-        "warnings": [],
-    }
+            "source_text": "Transfers above $1M require manager approval.",
+        },
+        {
+            "type": "separation_of_duties",
+            "value": True,
+            "source_text": "Proposer and approver must be separate.",
+        },
+    ]
+    assert report["compilation_report"]["schema_version"] == "governance_compilation_report.v1"
+    assert report["normalization_report"]["schema_version"] == "governance_normalization_report.v1"
 
 
 def test_review_constraints_extracts_and_reports():
@@ -52,20 +62,24 @@ def test_review_constraints_extracts_and_reports():
         created_at="2026-05-07T20:15:00Z",
     )
 
-    assert report == {
-        "review_id": "review-002",
-        "created_at": "2026-05-07T20:15:00Z",
-        "source_document": None,
-        "review_status": "pending",
-        "detected_constraints": [
-            {
-                "type": "required_role",
-                "value": "compliance",
-                "source_text": "Only compliance may",
-            },
-        ],
-        "warnings": [],
-    }
+    assert report["review_id"] == "review-002"
+    assert report["created_at"] == "2026-05-07T20:15:00Z"
+    assert report["source_document"] is None
+    assert report["review_status"] == "pending"
+    assert report["detected_constraints"] == [
+        {
+            "type": "required_role",
+            "value": "compliance",
+            "source_text": "Only compliance may approve transfers.",
+        },
+        {
+            "type": "required_approval",
+            "role": "compliance",
+            "source_text": "Only compliance may approve transfers.",
+        },
+    ]
+    assert report["warnings"] == []
+    assert report["extraction_coverage"]["coverage_percent"] == 100
 
 
 def test_review_id_is_stable_when_not_supplied():

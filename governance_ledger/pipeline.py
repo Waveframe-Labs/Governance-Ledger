@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any
 
 from governance_ledger.extract import extract_constraints
+from governance_ledger.integration_paths import ensure_integration_paths
 from governance_ledger.review import build_review_report
 from governance_ledger.validation import has_validation_errors, validate_compiler_policy
 
@@ -31,6 +32,7 @@ def build_contract_files(
         structured_policy,
         source_document=policy_input_path.name,
     )
+    ensure_integration_paths(compiler=True)
     from compiler.compile_policy import compile_policy
 
     compiled_contract = compile_policy(structured_policy)

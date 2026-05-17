@@ -8,14 +8,15 @@ version = "0.1.1"
 description = "Deterministic governance ledger, provenance, and policy translation for CRI-CORE."
 readme = "README.md"
 requires-python = ">=3.10"
-license = { text = "Apache-2.0" }
+license = "Apache-2.0"
 
 authors = [
     { name = "Waveframe Labs" }
 ]
 
 dependencies = [
-    "cricore-contract-compiler",
+    "cricore-contract-compiler>=0.3.0",
+    "waveframe-guard>=0.4.0",
 ]
 
 [project.optional-dependencies]
@@ -37,3 +38,6 @@ exclude = [
     "schemas*",
     "tests*",
 ]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]

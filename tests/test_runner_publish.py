@@ -39,7 +39,7 @@ def test_run_policy_directory_generates_draft_artifacts_only(tmp_path):
             "review_id": "review-finance_policy",
             "review_status": "pending",
             "review_created": True,
-            "constraint_count": 3,
+            "constraint_count": 4,
             "warning_count": 0,
             "ambiguity_count": 0,
         },
@@ -137,16 +137,20 @@ def test_approve_then_publish_creates_contract_review_and_snapshot_artifacts(tmp
     assert "\\" not in manifest["snapshots"][0]["path"]
 
     registry = json.loads(Path(result["registry"]).read_text())
-    assert registry["contracts"] == [
-        {
-            "contract_id": "finance-policy",
-            "contract_version": "0.1.0",
-            "contract_hash": manifest["contracts"][0]["contract_hash"],
-            "path": Path(result["contract"]).as_posix(),
-            "published_at": "2026-05-09T12:30:00Z",
-            "published_by": "governance-team",
-        }
-    ]
+    assert registry["contracts"][0]["contract_id"] == "finance-policy"
+    assert registry["contracts"][0]["contract_version"] == "0.1.0"
+    assert registry["contracts"][0]["authority_ref"] == "finance-policy@0.1.0"
+    assert registry["contracts"][0]["contract_ref"] == "finance-policy@0.1.0"
+    assert registry["contracts"][0]["contract_hash"] == manifest["contracts"][0]["contract_hash"]
+    assert registry["contracts"][0]["path"] == Path(result["contract"]).as_posix()
+    assert registry["contracts"][0]["publication_id"] == "pub_20260509_0001"
+    assert registry["contracts"][0]["published_at"] == "2026-05-09T12:30:00Z"
+    assert registry["contracts"][0]["published_by"] == "governance-team"
+    assert registry["contracts"][0]["source_hash"] == deployed_review["source_hash"]
+    assert (
+        registry["contracts"][0]["compilation_report_hash"]
+        == deployed_review["compilation_report"]["report_hash"]
+    )
 
 
 def test_publish_without_timestamp_records_effective_publication_time(tmp_path):
@@ -371,7 +375,7 @@ def test_format_run_summary_exposes_operational_counts(tmp_path):
 
     assert "[Governance Ledger]" in summary
     assert "Policy: finance_policy.txt" in summary
-    assert "3 constraints detected" in summary
+    assert "4 constraints detected" in summary
     assert "0 ambiguity warnings detected" in summary
     assert "pending human approval" in summary
     assert "review-finance_policy preserved" in summary

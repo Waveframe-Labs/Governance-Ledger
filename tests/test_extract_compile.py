@@ -25,12 +25,9 @@ def test_extracts_v01_constraints_from_policy_text():
             "separation_of_duties": True,
         },
         "approvals": {
-            "thresholds": [
+            "required": [
                 {
-                    "field": "amount",
-                    "operator": ">",
-                    "value": 1_000_000,
-                    "requires_role": "manager",
+                    "role": "manager",
                 },
             ],
         },

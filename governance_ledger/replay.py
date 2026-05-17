@@ -1,12 +1,11 @@
 from __future__ import annotations
 
 import copy
-import sys
-from pathlib import Path
 from typing import Any
 
 from governance_ledger.diagnostics import build_diagnostic
 from governance_ledger.extract import extract_constraints
+from governance_ledger.integration_paths import ensure_integration_paths
 from governance_ledger.provenance import source_governance_identity
 from governance_ledger.review import build_review_report
 
@@ -281,19 +280,8 @@ def _execution_compilation_report_hash_mismatch(
 
 
 def _ensure_compiler_import_path() -> None:
-    repo_root = Path(__file__).resolve().parents[3]
-    path = str(repo_root / "integrations" / "contract-compiler" / "src")
-    if path not in sys.path:
-        sys.path.insert(0, path)
+    ensure_integration_paths(compiler=True)
 
 
 def _ensure_guard_import_path() -> None:
-    repo_root = Path(__file__).resolve().parents[3]
-    for candidate in [
-        repo_root / "integrations" / "guard",
-        repo_root / "integrations" / "proposal-normalizer",
-        repo_root / "integrations" / "cricore" / "src",
-    ]:
-        path = str(candidate)
-        if path not in sys.path:
-            sys.path.insert(0, path)
+    ensure_integration_paths(guard=True)
